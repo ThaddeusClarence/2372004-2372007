@@ -1,14 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql2/promise');
-
-const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    database: 'travelgo',
-    waitForConnections: true,
-    connectionLimit: 10
-});
+const pool = require('../config/pool');
+const bookingCodeService = require('../services/bookingCodeService');
+const Validation = require('../utils/validation');
 
 // Middleware to check if customer is logged in
 const authCustomer = (req, res, next) => {
@@ -105,51 +99,77 @@ router.get('/booking/:scheduleId', async (req, res) => {
 
 // Process Booking
 router.post('/booking/:scheduleId', async (req, res) => {
-    const scheduleId = req.params.scheduleId;
-    const { passenger_name, seat_number } = req.body;
-    const userId = req.session.user.id;
+    try {
+        const scheduleId = req.params.scheduleId;
+        const { passenger_name, seat_number } = req.body;
+        const userId = req.session.user.id;
 
-    // Validate seat again to prevent double booking
-    const [bookedSeatsData] = await pool.query(`
-        SELECT st.seat_number 
-        FROM booking_seats bs
-        JOIN bookings b ON bs.booking_id = b.booking_id
-        JOIN seats st ON bs.seat_id = st.seat_id
-        WHERE b.schedule_id = ? AND st.seat_number = ? AND (b.status = 'confirmed' OR (b.status = 'pending' AND b.hold_expired_at > NOW()))
-    `, [scheduleId, seat_number]);
+        // Validate required fields
+        const reqErr = Validation.validateRequired(['passenger_name', 'seat_number'], req.body);
+        if (reqErr) {
+            return res.send(`<script>alert('${reqErr}'); window.history.back();</script>`);
+        }
 
-    if (bookedSeatsData.length > 0) {
-        return res.send('Maaf, kursi sudah dipesan orang lain. Silakan kembali dan pilih kursi lain.');
+        // Get price and vehicle_id
+        const [schedules] = await pool.query('SELECT price, vehicle_id FROM schedules WHERE schedule_id=?', [scheduleId]);
+        if (schedules.length === 0) {
+            return res.send("<script>alert('Gagal membuat pesanan: Jadwal tidak ditemukan!'); window.location.href='/customer/dashboard';</script>");
+        }
+        const schedule = schedules[0];
+
+        // Find or create seat to get seat_id
+        let seat_id = null;
+        const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [schedule.vehicle_id, seat_number]);
+        if (seats.length > 0) {
+            seat_id = seats[0].seat_id;
+        } else {
+            const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [schedule.vehicle_id, seat_number]);
+            seat_id = sRes.insertId;
+        }
+
+        // Validate seat again to prevent double booking
+        const [bookedSeatsData] = await pool.query(`
+            SELECT bs.booking_seat_id 
+            FROM booking_seats bs
+            JOIN bookings b ON bs.booking_id = b.booking_id
+            WHERE b.schedule_id = ? AND bs.seat_id = ? AND (b.status = 'confirmed' OR (b.status = 'pending' AND b.hold_expired_at > NOW()))
+        `, [scheduleId, seat_id]);
+
+        if (bookedSeatsData.length > 0) {
+            return res.send('Maaf, kursi sudah dipesan orang lain. Silakan kembali dan pilih kursi lain.');
+        }
+
+        // Generate unique booking code
+        const bookingCode = await bookingCodeService.generateCode();
+
+        const conn = await pool.getConnection();
+        try {
+            await conn.beginTransaction();
+
+            // Insert booking with hold_expired_at = NOW() + 10 minutes
+            const [result] = await conn.query(`
+                INSERT INTO bookings (user_id, schedule_id, booking_code, booking_channel, total_amount, passenger_name, status, hold_expired_at, created_at)
+                VALUES (?, ?, ?, 'online', ?, ?, 'pending', DATE_ADD(NOW(), INTERVAL 10 MINUTE), NOW())
+            `, [userId, scheduleId, bookingCode, schedule.price, passenger_name]);
+
+            const bookingId = result.insertId;
+            
+            // Insert seat mapping with captured price_at_booking
+            await conn.query('INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)', [bookingId, seat_id, schedule.price]);
+
+            await conn.commit();
+            res.redirect(`/customer/payment/${bookingId}`);
+        } catch(err) {
+            await conn.rollback();
+            console.error('Online booking transaction error:', err);
+            res.send('Terjadi kesalahan database saat membuat pesanan. Silakan coba lagi.');
+        } finally {
+            conn.release();
+        }
+    } catch(e) {
+        console.error('Online booking error:', e);
+        res.send('Terjadi kesalahan server saat membuat pesanan. Silakan coba lagi.');
     }
-
-    const [[schedule]] = await pool.query('SELECT price FROM schedules WHERE schedule_id=?', [scheduleId]);
-    const bookingCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-
-    // Insert booking with hold_expired_at = NOW() + 10 minutes
-    const [result] = await pool.query(`
-        INSERT INTO bookings (user_id, schedule_id, booking_code, booking_channel, total_amount, passenger_name, status, hold_expired_at, created_at)
-        VALUES (?, ?, ?, 'online', ?, ?, 'pending', DATE_ADD(NOW(), INTERVAL 10 MINUTE), NOW())
-    `, [userId, scheduleId, bookingCode, schedule.price, passenger_name]);
-
-    const bookingId = result.insertId;
-    
-    // Get vehicle_id
-    const [[vehicleData]] = await pool.query('SELECT vehicle_id FROM schedules WHERE schedule_id=?', [scheduleId]);
-    
-    // Find or create seat
-    let seat_id = null;
-    const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [vehicleData.vehicle_id, seat_number]);
-    if (seats.length > 0) {
-        seat_id = seats[0].seat_id;
-    } else {
-        const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [vehicleData.vehicle_id, seat_number]);
-        seat_id = sRes.insertId;
-    }
-
-    // Insert seat mapping
-    await pool.query('INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)', [bookingId, seat_id]);
-
-    res.redirect(`/customer/payment/${bookingId}`);
 });
 
 // Payment Page
