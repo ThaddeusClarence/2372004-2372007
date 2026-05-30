@@ -1,30 +1,39 @@
-<<<<<<< HEAD
+# Dependencies
 node_modules/
+/vendor/
+
+# Environment files
 .env
+.env.*
+!.env.example
+
+# Logs
 *.log
-=======
-*.log
-.DS_Store
-.env
-.env.backup
-.env.production
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-/node_modules
-/public/build
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+/public/build/
 /public/hot
-/public/storage
-/storage/*.key
-/storage/pail
-/vendor
+/public/storage/
+
+# Laravel/runtime leftovers
+/bootstrap/cache/
+/storage/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.kiro/
+/.fleet/
+/.idea/
+/.nova/
+/.vscode/
+/.zed/
+
+# Local auth/config
+/auth.json
 Homestead.json
 Homestead.yaml
-Thumbs.db
->>>>>>> 96a9b7fb8a66049745e008fb2c2fdfdc17c8216e
