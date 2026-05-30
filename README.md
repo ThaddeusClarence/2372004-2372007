@@ -1,64 +1,359 @@
-<<<<<<< HEAD
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TravelGo
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+TravelGo is a Node.js / Express booking app for bus or shuttle travel. It uses MySQL/MariaDB for schedules, vehicles, users, bookings, seats, payments, and e-ticket data, with Pug templates for the UI.
 
-## About Laravel
+> [!NOTE]
+> For step-by-step installation, developer environment setup, and local database configuration instructions, please see the dedicated **[SETUP.md](SETUP.md)** guide.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Node.js + Express
+- Pug views
+- MySQL / MariaDB, usually through XAMPP locally
+- Socket.IO for realtime admin/customer updates
+- bcrypt for password hashing
+- qrcode for QR generation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Prerequisites
 
-## Learning Laravel
+Install these first:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Node.js 18 or newer
+- Git
+- XAMPP, with MySQL/MariaDB enabled
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+You do not need Composer or Laravel Artisan for the current app.
 
-## Laravel Sponsors
+## How to Work With This Project
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Use the current Express structure as the source of truth. This project is not currently a Laravel app, even if older files or notes mention Laravel.
 
-### Premium Partners
+Important folders and files:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```text
+app.js                         Express bootstrap, sessions, routes, Socket.IO
+config/database.js             MySQL config loaded from .env
+scripts/migrate.js             SQL migration runner
+migrations/                    Source-of-truth database changes
+routes/index.js                Public pages, login, register
+routes/admin.js                Admin dashboard and operations
+routes/customer.js             Customer dashboard, booking, payment, history
+middleware/authAdmin.js        Admin role guard
+utils/env.js                   Lightweight .env loader
+utils/qrService.js             QR code helper
+views/**/*.pug                 Pug page templates
+public/css/*.css               Frontend styling
+```
 
-## Contributing
+Recommended development loop:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Pull the latest code.
 
-## Code of Conduct
+```bash
+git pull
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. Install dependencies if `package.json` or `package-lock.json` changed.
 
-## Security Vulnerabilities
+```bash
+npm install
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. Apply any new database migrations.
 
-## License
+```bash
+npm run migrate
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-=======
-# 2372004-2372007
-Proyek PDPL
->>>>>>> cbb748ec6a278828b3ada29188a0b61a1894f861
+4. Check migration state when something feels off.
+
+```bash
+npm run migrate:status
+```
+
+5. Start the development server.
+
+```bash
+npm run dev
+```
+
+6. Open the app at:
+
+```text
+http://localhost:3000
+```
+
+Before changing code, check the planning docs:
+
+- `requirements.md` describes what the app must do.
+- `design.md` describes the target Express architecture.
+- `roadmap.md` describes progress from the current state to 100%.
+- `tasks.md` lists the next implementation batches.
+
+When adding features, prefer small changes that match the current Express/Pug/MySQL style. Keep business rules out of Pug templates where possible. For booking, seat, payment, ticket, and notification logic, prefer service modules over copying SQL into many route handlers.
+
+## Setup From Zero
+
+1. Clone the repository.
+
+```bash
+git clone <repository-url>
+cd 2372004-2372007
+```
+
+2. Install Node dependencies.
+
+```bash
+npm install
+```
+
+3. Create your local environment file.
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+On macOS/Linux/Git Bash:
+
+```bash
+cp .env.example .env
+```
+
+4. Check the database settings in `.env`.
+
+For default XAMPP, this should work:
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=travelgo
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+5. Start MySQL from XAMPP.
+
+6. Run the migrations.
+
+```bash
+npm run migrate
+```
+
+This creates the `travelgo` database if it does not exist, creates the tables, and seeds the default accounts. You do not need to import a `.sql` file manually.
+
+7. Start the app.
+
+```bash
+npm start
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+For development with auto-restart:
+
+```bash
+npm run dev
+```
+
+## Default Accounts
+
+Admin:
+
+```text
+Email: admin@travelgo.com
+Username: admin123
+Password: admin123
+```
+
+Customer:
+
+```text
+Email: budi@example.com
+Username: budi
+Password: cust123
+```
+
+The login pages currently authenticate by email and password.
+
+## Database Migrations
+
+Migrations are the source of truth for the database.
+
+Migration files live in:
+
+```text
+migrations/
+```
+
+The migration runner records applied files in:
+
+```text
+schema_migrations
+```
+
+To apply new database changes after pulling from GitHub:
+
+```bash
+npm run migrate
+```
+
+To see which migrations are already applied:
+
+```bash
+npm run migrate:status
+```
+
+## How to Add or Change the Database Schema
+
+Do not edit an already-applied migration after teammates may have run it. The migration runner records filenames in `schema_migrations`, so changing the contents of an old migration will not automatically update teammates' databases. Add a new numbered migration instead.
+
+Use this workflow for every schema change:
+
+1. Find the latest migration number in `migrations/`.
+
+```text
+001_initial_schema.sql
+002_seed_default_users.sql
+003_normalize_notifications_table.sql
+004_add_current_app_indexes.sql
+```
+
+2. Create the next numbered SQL file with a clear name.
+
+```text
+005_add_cancellation_requests.sql
+```
+
+3. Put only forward changes in the file.
+
+Good examples:
+
+```sql
+CREATE TABLE IF NOT EXISTS cancellation_requests (...);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled_reason TEXT NULL;
+ALTER TABLE payments ADD INDEX IF NOT EXISTS payments_status_index (status);
+```
+
+Avoid these during normal team development:
+
+```sql
+DROP DATABASE travelgo;
+DROP TABLE bookings;
+TRUNCATE TABLE bookings;
+```
+
+4. Run the migration locally.
+
+```bash
+npm run migrate
+```
+
+5. Verify the migration state.
+
+```bash
+npm run migrate:status
+```
+
+6. Update the application code that uses the new schema.
+
+7. Commit the migration file together with the code that depends on it.
+
+After a teammate pulls your change, they should run:
+
+```bash
+git pull
+npm install
+npm run migrate
+```
+
+No dropping the database, no phpMyAdmin dumps, and no `php artisan migrate`.
+
+### Schema Change Rules
+
+- Add a new numbered SQL migration for every schema change.
+- Keep migrations idempotent when possible with `IF NOT EXISTS`.
+- Keep `.env` private. Commit `.env.example`, not `.env`.
+- If a new feature needs a new env variable, add it to `.env.example` and document it.
+- Keep seed data safe to rerun by using `ON DUPLICATE KEY UPDATE` when possible.
+- Do not create or alter tables inside route handlers. Schema belongs in `migrations/`.
+- Do not rely on manual phpMyAdmin edits. If the app needs it, write a migration.
+- Commit schema changes and code changes together so the app and database stay compatible.
+
+### Example: Adding a Column
+
+Create a new migration such as:
+
+```text
+005_add_refund_reason_to_bookings.sql
+```
+
+Add the SQL:
+
+```sql
+ALTER TABLE bookings
+    ADD COLUMN IF NOT EXISTS refund_reason TEXT NULL;
+```
+
+Run:
+
+```bash
+npm run migrate
+npm run migrate:status
+```
+
+Then update the route/service/view code that uses `refund_reason`.
+
+### Example: Adding a New Table
+
+Create a new migration such as:
+
+```text
+006_add_reschedule_requests.sql
+```
+
+Add the SQL:
+
+```sql
+CREATE TABLE IF NOT EXISTS reschedule_requests (
+    request_id INT NOT NULL AUTO_INCREMENT,
+    booking_id INT NOT NULL,
+    target_schedule_id INT NOT NULL,
+    status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at DATETIME NULL,
+    notes TEXT NULL,
+    PRIMARY KEY (request_id),
+    KEY reschedule_requests_booking_id_index (booking_id),
+    KEY reschedule_requests_target_schedule_id_index (target_schedule_id),
+    CONSTRAINT reschedule_requests_booking_id_foreign
+        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id),
+    CONSTRAINT reschedule_requests_target_schedule_id_foreign
+        FOREIGN KEY (target_schedule_id) REFERENCES schedules(schedule_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+Run the migration and commit it with the feature code.
+
+## Important Notes
+
+- Do not manually edit already-applied migration files after teammates have run them. Add a new migration instead.
+- Do not use `php artisan migrate`; this project currently runs on Express, not Laravel.
+- Keep `.env` private. Commit `.env.example`, not `.env`.
+- The database name used by default is `travelgo`.
+- If local data gets messy, prefer fixing it with a migration or a clear seed/update script. Only drop/reset your own local database when you understand that all local data will be lost.
+
+## Useful Commands
+
+```bash
+npm install          # install dependencies
+npm run migrate     # apply pending database migrations
+npm run migrate:status
+npm start           # start app at http://localhost:3000
+npm run dev         # start with nodemon
+```

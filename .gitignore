@@ -42,3 +42,9 @@ Thumbs.db
 /auth.json
 Homestead.json
 Homestead.yaml
+
+# Local PRD planning documents (AI reference only)
+/requirements.md
+/design.md
+/roadmap.md
+/tasks.md

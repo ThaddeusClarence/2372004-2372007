@@ -1,252 +1,188 @@
-# TravelGo — Setup Guide
+# TravelGo — Developer Setup Guide
 
-A booking management system for a bus/shuttle transportation company. This guide walks you through setting up the project on your local machine using **XAMPP** (MySQL/MariaDB) and optionally **MySQL Workbench**.
+Welcome to the **TravelGo** developer setup guide! This document will walk you through setting up your local environment using Node.js, Express, and MySQL (via XAMPP or standard MySQL).
+
+For a high-level architectural overview, requirements, design documentation, and roadmap details, please refer to the **[README.md](README.md)**.
 
 ---
 
 ## Prerequisites
 
-Make sure you have the following installed:
+Ensure you have the following installed on your machine:
 
 | Software | Version | Download |
-|---|---|---|
-| **XAMPP** | Latest (with PHP 8.2+) | https://www.apachefriends.org/ |
-| **Composer** | Latest | https://getcomposer.org/ |
-| **Node.js** | v18 or higher | https://nodejs.org/ |
-| **Git** | Latest | https://git-scm.com/ |
-| MySQL Workbench *(optional)* | Latest | https://dev.mysql.com/downloads/workbench/ |
+| :--- | :--- | :--- |
+| **Node.js** | v18 or higher | [nodejs.org](https://nodejs.org/) |
+| **Git** | Latest | [git-scm.com](https://git-scm.com/) |
+| **XAMPP** (or MySQL Server) | Any (MySQL 5.7+ / MariaDB 10.3+) | [apachefriends.org](https://www.apachefriends.org/) |
+| MySQL Workbench *(Optional)* | Latest | [dev.mysql.com](https://dev.mysql.com/downloads/workbench/) |
+
+> [!NOTE]
+> This is a Node.js / Express / Pug application. You **do not** need PHP, Composer, or Laravel. Do not run any `composer install` or `php artisan` commands.
 
 ---
 
-## Step 1 — Clone the Repository
+## Step-by-Step Installation
+
+### Step 1 — Clone the Repository
+
+Clone this project repository to your local machine and navigate into the project directory:
 
 ```bash
 git clone <repository-url>
 cd 2372004-2372007
 ```
 
----
+### Step 2 — Install Node.js Dependencies
 
-## Step 2 — Install Dependencies
-
-Install PHP and JavaScript dependencies:
+Install all dependencies listed in `package.json`:
 
 ```bash
-composer install
 npm install
 ```
 
----
+### Step 3 — Configure Environment Variables
 
-## Step 3 — Configure Environment
+1. Copy the example environment configuration file to create your active `.env` file:
 
-Copy the example environment file and generate an application key:
+   * **Windows (PowerShell)**:
+     ```powershell
+     Copy-Item .env.example .env
+     ```
+   * **macOS / Linux / Git Bash**:
+     ```bash
+     cp .env.example .env
+     ```
 
-```bash
-copy .env.example .env
-php artisan key:generate
-```
+2. Open the `.env` file in your editor and configure the database details to match your MySQL server:
 
-Then open the `.env` file and update the **database settings** to match your XAMPP configuration:
+   ```dotenv
+   APP_NAME=TravelGo
+   APP_ENV=local
+   APP_URL=http://localhost:3000
+   PORT=3000
 
-```dotenv
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=travelgo
-DB_USERNAME=root
-DB_PASSWORD=
-```
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_DATABASE=travelgo
+   DB_USERNAME=root
+   DB_PASSWORD=
 
-> **Note:** XAMPP's default MySQL user is `root` with an empty password. If you changed yours, update accordingly.
-
----
-
-## Step 4 — Create the Database
-
-You need to create an **empty** database named `travelgo` before running migrations.
-
-### Option A: Using phpMyAdmin (XAMPP)
-
-1. Start **Apache** and **MySQL** from the XAMPP Control Panel.
-2. Open your browser and go to `http://localhost/phpmyadmin`.
-3. Click the **"New"** button on the left sidebar.
-4. Enter `travelgo` as the database name.
-5. Set the collation to `utf8mb4_general_ci`.
-6. Click **"Create"**.
-
-### Option B: Using MySQL Workbench
-
-1. Open MySQL Workbench and connect to your local server (`127.0.0.1`, user `root`, no password).
-2. In the query editor, run:
-   ```sql
-   CREATE DATABASE travelgo CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+   SESSION_SECRET=travelgo-secret-key
    ```
-3. Click the refresh button on the **Schemas** panel to see the new database.
 
----
+   > [!NOTE]
+   > For default XAMPP setups, the database username is `root` and the password is blank (empty).
 
-## Step 5 — Run Migrations & Seed the Database
+### Step 4 — Check Database Connectivity
 
-This single command creates **all** tables and fills them with sample data:
-
-```bash
-php artisan migrate --seed
-```
-
-> **⚠️ Important:** This command should only be run on an **empty database** (first-time setup). If you already have data and want to start fresh, use `php artisan migrate:fresh --seed` instead (this drops all tables first).
-
-You should see output like:
-
-```
-INFO  Running migrations.
-
-  0001_01_01_000000_create_users_table .............. DONE
-  0001_01_01_000001_create_cache_table .............. DONE
-  0001_01_01_000002_create_jobs_table ............... DONE
-  2024_01_01_000001_create_vehicles_table ........... DONE
-  2024_01_01_000002_create_routes_table ............. DONE
-  ...
-
-INFO  Seeding database.
-```
-
-### Sample Accounts
-
-The seeder creates the following accounts (password for all: `password`):
-
-| Email | Role |
-|---|---|
-| `admin@travelgo.com` | Admin |
-| `budi@example.com` | Customer |
-| `siti@example.com` | Customer |
-
----
-
-## Step 6 — Start the Application
-
-Run the development server:
+Start **MySQL** from your XAMPP Control Panel (or your standalone MySQL server), then verify that the database connection configuration is correct and that the database is reachable:
 
 ```bash
-composer dev
+node check-db.js
 ```
 
-This starts three services simultaneously:
-- **Laravel server** at `http://localhost:8000`
-- **Queue worker** for background jobs
-- **Vite** for front-end asset compilation
+If it connects, you will see a list of tables (or an empty list if this is a fresh setup). If it fails, check that your MySQL server is running and that your `.env` settings are correct.
 
-Open your browser and go to **http://localhost:8000** 🎉
+### Step 5 — Run Database Migrations
+
+You do not need to manually import a `.sql` dump. The project contains a built-in migration runner that will automatically create the database (if it doesn't exist), establish all schemas, and seed the default accounts:
+
+```bash
+npm run migrate
+```
+
+Verify that all migrations have been successfully applied by checking their status:
+
+```bash
+npm run migrate:status
+```
 
 ---
 
-## Team Collaboration Workflow
+## Default Accounts
 
-When working with teammates, follow these rules to avoid database errors.
+The initial database migrations seed two default accounts for testing:
 
-### After Pulling Changes (`git pull`)
+### 🛡️ Admin Account
+* **Email**: `admin@travelgo.com`
+* **Username**: `admin123`
+* **Password**: `admin123`
 
-After your teammate pushes new code (possibly with new migrations), do this:
+### 👤 Customer Account
+* **Email**: `budi@example.com`
+* **Username**: `budi`
+* **Password**: `cust123`
+
+---
+
+## Running the Application
+
+To start the server in production/normal mode:
+
+```bash
+npm start
+```
+
+For development mode (starts the application with `nodemon` for auto-restarting when files are modified):
+
+```bash
+npm run dev
+```
+
+Open your browser and navigate to **[http://localhost:3000](http://localhost:3000)**! 🎉
+
+---
+
+## Database Migration & Schema Change Workflow
+
+To ensure clean teamwork and smooth integration of changes, follow these strict database guidelines.
+
+### 1. After pulling updates (`git pull`)
+Whenever you pull new commits from GitHub, your database might need schema updates. Run:
 
 ```bash
 git pull
-composer install       # in case new PHP packages were added
-npm install            # in case new JS packages were added
-php artisan migrate    # runs ONLY the new migrations, keeps your data
+npm install
+npm run migrate
 ```
 
-> **Note:** Do NOT run `php artisan migrate --seed` or `php artisan db:seed` after pulling. Seeders are for first-time setup only — running them again will cause duplicate data errors.
+This will run **only** the new migration scripts, preserving all your existing local databases and data.
 
-### How to Change the Database Structure
+### 2. When creating a database schema change
+**Rule 1: Never edit an already-applied migration file.** Since the migration runner tracks applied filenames in the `schema_migrations` table, editing a file that has already run locally or on a classmate's machine will not trigger updates.
 
-**Never edit an existing migration file.** Your teammates have already run the old version and Laravel won't re-run it. Always create a **new** migration instead.
+**Rule 2: Always create a new migration file.** Follow these steps to introduce columns, tables, or indexes:
 
-#### Example: Adding a `phone` column to the `users` table
-
-```bash
-php artisan make:migration add_phone_to_users_table
-```
-
-Then edit the newly created file:
-
-```php
-public function up(): void
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->string('phone', 20)->nullable()->after('email');
-    });
-}
-
-public function down(): void
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->dropColumn('phone');
-    });
-}
-```
-
-Commit and push. When your teammate pulls and runs `php artisan migrate`, Laravel will apply only this new change.
-
-### If the Database Gets Messy
-
-If you or your teammate runs into weird errors, the "nuclear option" resets everything:
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-This drops **all** tables, recreates them from scratch, and re-inserts the sample data. All existing data will be lost.
-
-### Quick Reference
-
-| Situation | Command |
-|---|---|
-| First time setup (empty database) | `php artisan migrate --seed` |
-| After `git pull` | `php artisan migrate` |
-| Database is broken / need a clean reset | `php artisan migrate:fresh --seed` |
-| You need to change a table | `php artisan make:migration <description>` |
+1. Look in the `migrations/` folder to find the next available sequential number. For example:
+   ```text
+   001_initial_schema.sql
+   002_seed_default_users.sql
+   003_normalize_notifications_table.sql
+   004_add_current_app_indexes.sql
+   ```
+2. Create the next file, starting with the padded sequential number and a descriptive name. E.g., `005_add_cancellation_requests.sql`.
+3. Add your standard DDL SQL queries (use `IF NOT EXISTS` where applicable for safety). E.g.:
+   ```sql
+   ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled_reason TEXT NULL;
+   ```
+4. Run your migration locally to test it:
+   ```bash
+   npm run migrate
+   npm run migrate:status
+   ```
+5. Commit the migration file alongside the JavaScript code that depends on it.
 
 ---
 
 ## Troubleshooting
 
-### "SQLSTATE[HY000] [1049] Unknown database 'travelgo'"
-You haven't created the database yet. Go back to Step 4.
+### "Error: ER_BAD_DB_ERROR: Unknown database 'travelgo'"
+The database does not exist. Run `npm run migrate`, which will auto-create the database schema for you.
 
-### "Table already exists" when running `php artisan migrate`
-Your database already has tables. Use `php artisan migrate:fresh --seed` to reset.
+### "Nodemon command not found"
+If you run `npm run dev` and nodemon is not recognized, run `npm install` again to ensure development dependencies are fully installed, or install nodemon globally: `npm install -g nodemon`.
 
-### "Duplicate entry" when running `php artisan db:seed`
-Seeders already ran before. Don't run seeders on a database that already has data. Use `php artisan migrate:fresh --seed` to reset.
-
-### "composer dev" fails or Vite doesn't start
-Make sure you ran `npm install` (Step 2). Also verify that Node.js is installed by running `node -v`.
-
-### MySQL won't start in XAMPP
-Port 3306 may be in use. Open XAMPP → Config → MySQL (`my.ini`) and change the port, or close any other MySQL instances.
-
----
-
-## Summary of Commands
-
-```bash
-# 1. Clone and enter the project
-git clone <repository-url>
-cd 2372004-2372007
-
-# 2. Install dependencies
-composer install
-npm install
-
-# 3. Configure environment
-copy .env.example .env
-php artisan key:generate
-
-# 4. Create the "travelgo" database via phpMyAdmin or MySQL Workbench
-
-# 5. Run migrations and seed sample data
-php artisan migrate --seed
-
-# 6. Start the app
-composer dev
-```
+### MySQL connection times out or fails
+* Check that **MySQL** is running in your XAMPP Control Panel.
+* Check that your `.env` port (`3306`) is not being used by a standalone MySQL/MariaDB service. If it is, either shut down that service or configure XAMPP/standalone to use a different port and update `DB_PORT` in your `.env`.
