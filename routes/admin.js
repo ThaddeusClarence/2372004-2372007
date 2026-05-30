@@ -72,8 +72,13 @@ router.post('/schedules', authAdmin, async (req, res) => {
     res.redirect('/admin/schedules');
 });
 router.post('/schedules/delete/:id', authAdmin, async (req, res) => {
-    await pool.query('DELETE FROM schedules WHERE schedule_id=?', [req.params.id]);
-    res.redirect('/admin/schedules');
+    try {
+        await pool.query('DELETE FROM schedules WHERE schedule_id=?', [req.params.id]);
+        res.redirect('/admin/schedules');
+    } catch(e) {
+        console.error('Delete schedule error:', e);
+        res.send("<script>alert('Gagal menghapus jadwal! Jadwal ini sudah memiliki pesanan yang terhubung.'); window.location.href='/admin/schedules';</script>");
+    }
 });
 
 /* Vehicles */
@@ -87,15 +92,20 @@ router.post('/vehicles', authAdmin, async (req, res) => {
     res.redirect('/admin/vehicles');
 });
 router.post('/vehicles/delete/:id', authAdmin, async (req, res) => {
-    await pool.query('DELETE FROM vehicles WHERE vehicle_id=?', [req.params.id]);
-    res.redirect('/admin/vehicles');
+    try {
+        await pool.query('DELETE FROM vehicles WHERE vehicle_id=?', [req.params.id]);
+        res.redirect('/admin/vehicles');
+    } catch(e) {
+        console.error('Delete vehicle error:', e);
+        res.send("<script>alert('Gagal menghapus kendaraan! Kendaraan ini memiliki kursi atau jadwal yang terhubung.'); window.location.href='/admin/vehicles';</script>");
+    }
 });
 
 /* Bookings */
 router.get('/bookings', authAdmin, async (req, res) => {
     const [bookings] = await pool.query(`
         SELECT b.booking_id as id, u.email, r.origin_city AS origin, r.destination_city AS destination, b.status, b.created_at, b.passenger_name,
-        (SELECT GROUP_CONCAT(seat_id) FROM booking_seats WHERE booking_id = b.booking_id) as seat_number
+        (SELECT GROUP_CONCAT(st.seat_number) FROM booking_seats bs JOIN seats st ON bs.seat_id = st.seat_id WHERE bs.booking_id = b.booking_id) as seat_number
         FROM bookings b
         LEFT JOIN users u ON b.user_id = u.id
         JOIN schedules s ON b.schedule_id = s.schedule_id
@@ -128,11 +138,20 @@ router.get('/bookings/new', authAdmin, async (req, res) => {
 
 router.post('/bookings/new', authAdmin, async (req, res) => {
     const { schedule_id, passenger_name, seat_number } = req.body;
-    const user_id = req.session.user.id; 
+    const user_id = req.session.user ? req.session.user.id : null; 
     const booking_code = Math.random().toString(36).substring(2, 10).toUpperCase();
 
-    // Get price
-    const [[schedule]] = await pool.query('SELECT price FROM schedules WHERE schedule_id=?', [schedule_id]);
+    // Get price and vehicle_id
+    const [[schedule]] = await pool.query('SELECT price, vehicle_id FROM schedules WHERE schedule_id=?', [schedule_id]);
+
+    let seat_id = null;
+    const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [schedule.vehicle_id, seat_number]);
+    if (seats.length > 0) {
+        seat_id = seats[0].seat_id;
+    } else {
+        const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [schedule.vehicle_id, seat_number]);
+        seat_id = sRes.insertId;
+    }
 
     const [result] = await pool.query(
         "INSERT INTO bookings (user_id, schedule_id, booking_code, booking_channel, total_amount, passenger_name, status, created_at) VALUES (?, ?, ?, 'offline', ?, ?, 'confirmed', NOW())",
@@ -140,7 +159,7 @@ router.post('/bookings/new', authAdmin, async (req, res) => {
     );
     
     // Insert seat
-    await pool.query('INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)', [result.insertId, seat_number]);
+    await pool.query('INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)', [result.insertId, seat_id]);
 
     res.redirect('/admin/bookings');
 });
@@ -167,17 +186,31 @@ router.get('/bookings/reschedule/:id', authAdmin, async (req, res) => {
 
 router.post('/bookings/reschedule/:id', authAdmin, async (req, res) => {
     const { schedule_id, seat_number } = req.body;
+    const [[schedule]] = await pool.query('SELECT vehicle_id FROM schedules WHERE schedule_id=?', [schedule_id]);
+    
+    let seat_id = null;
+    const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [schedule.vehicle_id, seat_number]);
+    if (seats.length > 0) {
+        seat_id = seats[0].seat_id;
+    } else {
+        const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [schedule.vehicle_id, seat_number]);
+        seat_id = sRes.insertId;
+    }
+
     await pool.query('UPDATE bookings SET schedule_id=? WHERE booking_id=?', [schedule_id, req.params.id]);
     await pool.query('DELETE FROM booking_seats WHERE booking_id=?', [req.params.id]);
-    await pool.query('INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)', [req.params.id, seat_number]);
+    await pool.query('INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)', [req.params.id, seat_id]);
     res.redirect('/admin/bookings');
 });
 
 /* Notifications */
 router.get('/notifications', authAdmin, async (req, res) => {
-    // Assuming notifications table has an admin_id? The user schema shows no admin_id. 
-    // Let's just create the table if missing or skip it.
     try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS notifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            message TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
         const [notifications] = await pool.query('SELECT * FROM notifications ORDER BY created_at DESC');
         res.render('admin/notifications', { title: 'Notifikasi', notifications, user: req.session.user });
     } catch(e) {
@@ -187,11 +220,17 @@ router.get('/notifications', authAdmin, async (req, res) => {
 router.post('/notifications', authAdmin, async (req, res) => {
     try {
         const { message } = req.body;
-        // The table notifications might require data column for laravel?
-        // Skip DB insert for now, just emit
+        await pool.query(`CREATE TABLE IF NOT EXISTS notifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            message TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+        await pool.query('INSERT INTO notifications (message) VALUES (?)', [message]);
         const io = req.app.get('io');
         if (io) io.emit('adminNotification', { message });
-    } catch(e) {}
+    } catch(e) {
+        console.error('Add notification error:', e);
+    }
     res.redirect('/admin/notifications');
 });
 
@@ -199,7 +238,7 @@ router.post('/notifications', authAdmin, async (req, res) => {
 router.get('/eticket/:bookingId', authAdmin, async (req, res) => {
     const [rows] = await pool.query(`
         SELECT b.booking_id as id, b.*, r.origin_city AS origin, r.destination_city AS destination, s.departure_time as departure, u.email,
-        (SELECT GROUP_CONCAT(seat_id) FROM booking_seats WHERE booking_id = b.booking_id) as seat_number
+        (SELECT GROUP_CONCAT(st.seat_number) FROM booking_seats bs JOIN seats st ON bs.seat_id = st.seat_id WHERE bs.booking_id = b.booking_id) as seat_number
         FROM bookings b
         JOIN schedules s ON b.schedule_id = s.schedule_id
         JOIN routes r ON s.route_id = r.route_id

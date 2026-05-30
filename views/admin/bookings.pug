@@ -34,8 +34,8 @@ block content
                     span.badge.badge-pending Pending
                   else if b.status === 'confirmed'
                     span.badge.badge-confirmed Confirmed
-                  else if b.status === 'canceled'
-                    span.badge.badge-canceled Canceled
+                  else if b.status === 'cancelled'
+                    span.badge.badge-canceled Cancelled
                   else if b.status === 'refunded'
                     span.badge.badge-refunded Refunded
                 td #{new Date(b.created_at).toLocaleString('id-ID')}
@@ -46,7 +46,7 @@ block content
                         input(type="hidden" name="status" value="confirmed")
                         button.btn.btn-success.btn-sm(type="submit") Konfirmasi
                       form(method="POST" action=`/admin/bookings/status/${b.id}`)
-                        input(type="hidden" name="status" value="canceled")
+                        input(type="hidden" name="status" value="cancelled")
                         button.btn.btn-danger.btn-sm(type="submit") Batalkan
                     if b.status === 'confirmed' || b.status === 'pending'
                       a.btn.btn-secondary.btn-sm(href=`/admin/bookings/reschedule/${b.id}`) Reschedule
