@@ -1,16 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql2/promise');
+const pool = require('../config/pool');
 const bcrypt = require('bcrypt');
-
-// MySQL connection pool
-const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    database: 'travelgo',
-    waitForConnections: true,
-    connectionLimit: 10
-});
 
 router.get('/', (req, res) => {
     res.render('home', { title: 'TravelGo - Pencarian Jadwal Travel' });
@@ -24,7 +15,7 @@ router.get('/login-admin', (req, res) => {
     res.render('login-admin', { title: 'Admin Login - TravelGo', error: null });
 });
 
-// POST login admin — actually check database
+// POST login admin 窶・actually check database
 router.post('/login-admin', async (req, res) => {
     try {
         const { email, username, password } = req.body;
@@ -45,7 +36,7 @@ router.post('/login-admin', async (req, res) => {
     }
 });
 
-// POST login customer — actually check database
+// POST login customer 窶・actually check database
 router.post('/login-customer', async (req, res) => {
     try {
         const { email, username, password } = req.body;
