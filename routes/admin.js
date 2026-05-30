@@ -1,16 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const authAdmin = require('../middleware/authAdmin');
-const mysql = require('mysql2/promise');
+const pool = require('../config/pool');
 const qrService = require('../utils/qrService');
-
-const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    database: 'travelgo',
-    waitForConnections: true,
-    connectionLimit: 10
-});
+const bookingCodeService = require('../services/bookingCodeService');
+const Validation = require('../utils/validation');
 
 /* Dashboard */
 router.get('/dashboard', authAdmin, async (req, res) => {
@@ -137,31 +131,73 @@ router.get('/bookings/new', authAdmin, async (req, res) => {
 });
 
 router.post('/bookings/new', authAdmin, async (req, res) => {
-    const { schedule_id, passenger_name, seat_number } = req.body;
-    const user_id = req.session.user ? req.session.user.id : null; 
-    const booking_code = Math.random().toString(36).substring(2, 10).toUpperCase();
+    try {
+        const { schedule_id, passenger_name, seat_number } = req.body;
+        const user_id = req.session.user ? req.session.user.id : null; 
 
-    // Get price and vehicle_id
-    const [[schedule]] = await pool.query('SELECT price, vehicle_id FROM schedules WHERE schedule_id=?', [schedule_id]);
+        // Validate required fields
+        const reqErr = Validation.validateRequired(['schedule_id', 'passenger_name', 'seat_number'], req.body);
+        if (reqErr) {
+            return res.send(`<script>alert('${reqErr}'); window.history.back();</script>`);
+        }
 
-    let seat_id = null;
-    const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [schedule.vehicle_id, seat_number]);
-    if (seats.length > 0) {
-        seat_id = seats[0].seat_id;
-    } else {
-        const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [schedule.vehicle_id, seat_number]);
-        seat_id = sRes.insertId;
+        // Get price and vehicle_id
+        const [schedules] = await pool.query('SELECT price, vehicle_id FROM schedules WHERE schedule_id=?', [schedule_id]);
+        if (schedules.length === 0) {
+            return res.send("<script>alert('Gagal membuat pesanan: Jadwal tidak ditemukan!'); window.history.back();</script>");
+        }
+        const schedule = schedules[0];
+
+        // Find or create seat
+        let seat_id = null;
+        const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [schedule.vehicle_id, seat_number]);
+        if (seats.length > 0) {
+            seat_id = seats[0].seat_id;
+        } else {
+            const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [schedule.vehicle_id, seat_number]);
+            seat_id = sRes.insertId;
+        }
+
+        // Check if the seat is already booked/held for this schedule
+        const [bookedSeatsData] = await pool.query(`
+            SELECT bs.booking_seat_id 
+            FROM booking_seats bs
+            JOIN bookings b ON bs.booking_id = b.booking_id
+            WHERE b.schedule_id = ? AND bs.seat_id = ? AND (b.status = 'confirmed' OR (b.status = 'pending' AND b.hold_expired_at > NOW()))
+        `, [schedule_id, seat_id]);
+
+        if (bookedSeatsData.length > 0) {
+            return res.send("<script>alert('Gagal membuat pesanan: Kursi ini sudah dipesan atau sedang ditahan!'); window.history.back();</script>");
+        }
+
+        // Generate unique booking code
+        const booking_code = await bookingCodeService.generateCode();
+
+        const conn = await pool.getConnection();
+        try {
+            await conn.beginTransaction();
+
+            const [result] = await conn.query(
+                "INSERT INTO bookings (user_id, schedule_id, booking_code, booking_channel, total_amount, passenger_name, status, created_at) VALUES (?, ?, ?, 'offline', ?, ?, 'confirmed', NOW())",
+                [user_id, schedule_id, booking_code, schedule.price, passenger_name]
+            );
+            
+            // Insert seat mapping with captured price_at_booking
+            await conn.query('INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)', [result.insertId, seat_id, schedule.price]);
+
+            await conn.commit();
+            res.redirect('/admin/bookings');
+        } catch(err) {
+            await conn.rollback();
+            console.error('Offline booking transaction error:', err);
+            res.send("<script>alert('Gagal membuat pesanan: Terjadi kesalahan database.'); window.history.back();</script>");
+        } finally {
+            conn.release();
+        }
+    } catch(e) {
+        console.error('Offline booking error:', e);
+        res.send("<script>alert('Gagal membuat pesanan: Terjadi kesalahan internal.'); window.history.back();</script>");
     }
-
-    const [result] = await pool.query(
-        "INSERT INTO bookings (user_id, schedule_id, booking_code, booking_channel, total_amount, passenger_name, status, created_at) VALUES (?, ?, ?, 'offline', ?, ?, 'confirmed', NOW())",
-        [user_id, schedule_id, booking_code, schedule.price, passenger_name]
-    );
-    
-    // Insert seat
-    await pool.query('INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)', [result.insertId, seat_id]);
-
-    res.redirect('/admin/bookings');
 });
 
 /* Reschedule */
@@ -185,46 +221,83 @@ router.get('/bookings/reschedule/:id', authAdmin, async (req, res) => {
 });
 
 router.post('/bookings/reschedule/:id', authAdmin, async (req, res) => {
-    const { schedule_id, seat_number } = req.body;
-    const [[schedule]] = await pool.query('SELECT vehicle_id FROM schedules WHERE schedule_id=?', [schedule_id]);
-    
-    let seat_id = null;
-    const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [schedule.vehicle_id, seat_number]);
-    if (seats.length > 0) {
-        seat_id = seats[0].seat_id;
-    } else {
-        const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [schedule.vehicle_id, seat_number]);
-        seat_id = sRes.insertId;
-    }
+    try {
+        const { schedule_id, seat_number } = req.body;
 
-    await pool.query('UPDATE bookings SET schedule_id=? WHERE booking_id=?', [schedule_id, req.params.id]);
-    await pool.query('DELETE FROM booking_seats WHERE booking_id=?', [req.params.id]);
-    await pool.query('INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)', [req.params.id, seat_id]);
-    res.redirect('/admin/bookings');
+        // Validate required fields
+        const reqErr = Validation.validateRequired(['schedule_id', 'seat_number'], req.body);
+        if (reqErr) {
+            return res.send(`<script>alert('${reqErr}'); window.history.back();</script>`);
+        }
+
+        // Fetch schedule details
+        const [schedules] = await pool.query('SELECT price, vehicle_id FROM schedules WHERE schedule_id=?', [schedule_id]);
+        if (schedules.length === 0) {
+            return res.send("<script>alert('Gagal reschedule: Jadwal tidak ditemukan!'); window.history.back();</script>");
+        }
+        const schedule = schedules[0];
+        
+        // Find or create seat
+        let seat_id = null;
+        const [seats] = await pool.query('SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?', [schedule.vehicle_id, seat_number]);
+        if (seats.length > 0) {
+            seat_id = seats[0].seat_id;
+        } else {
+            const [sRes] = await pool.query('INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)', [schedule.vehicle_id, seat_number]);
+            seat_id = sRes.insertId;
+        }
+
+        // Check if the seat is already booked/held for this schedule by someone else
+        const [bookedSeatsData] = await pool.query(`
+            SELECT bs.booking_seat_id 
+            FROM booking_seats bs
+            JOIN bookings b ON bs.booking_id = b.booking_id
+            WHERE b.schedule_id = ? AND bs.seat_id = ? AND b.booking_id != ? AND (b.status = 'confirmed' OR (b.status = 'pending' AND b.hold_expired_at > NOW()))
+        `, [schedule_id, seat_id, req.params.id]);
+
+        if (bookedSeatsData.length > 0) {
+            return res.send("<script>alert('Gagal reschedule: Kursi ini sudah dipesan oleh orang lain!'); window.history.back();</script>");
+        }
+
+        const conn = await pool.getConnection();
+        try {
+            await conn.beginTransaction();
+
+            // Update booking schedule_id and total_amount
+            await conn.query('UPDATE bookings SET schedule_id=?, total_amount=? WHERE booking_id=?', [schedule_id, schedule.price, req.params.id]);
+            
+            // Refresh booking seats
+            await conn.query('DELETE FROM booking_seats WHERE booking_id=?', [req.params.id]);
+            await conn.query('INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)', [req.params.id, seat_id, schedule.price]);
+
+            await conn.commit();
+            res.redirect('/admin/bookings');
+        } catch(err) {
+            await conn.rollback();
+            console.error('Reschedule transaction error:', err);
+            res.send("<script>alert('Gagal reschedule: Terjadi kesalahan database.'); window.history.back();</script>");
+        } finally {
+            conn.release();
+        }
+    } catch(e) {
+        console.error('Reschedule error:', e);
+        res.send("<script>alert('Gagal reschedule: Terjadi kesalahan internal.'); window.history.back();</script>");
+    }
 });
 
 /* Notifications */
 router.get('/notifications', authAdmin, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS notifications (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            message TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
         const [notifications] = await pool.query('SELECT * FROM notifications ORDER BY created_at DESC');
         res.render('admin/notifications', { title: 'Notifikasi', notifications, user: req.session.user });
     } catch(e) {
+        console.error('Fetch notifications error:', e);
         res.render('admin/notifications', { title: 'Notifikasi', notifications: [], user: req.session.user });
     }
 });
 router.post('/notifications', authAdmin, async (req, res) => {
     try {
         const { message } = req.body;
-        await pool.query(`CREATE TABLE IF NOT EXISTS notifications (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            message TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
         await pool.query('INSERT INTO notifications (message) VALUES (?)', [message]);
         const io = req.app.get('io');
         if (io) io.emit('adminNotification', { message });
