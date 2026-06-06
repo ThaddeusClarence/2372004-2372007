@@ -69,3 +69,49 @@ block content
         });
       }
     });
+
+    setInterval(async () => {
+      try {
+        const resp = await fetch('/customer/api/seats/#{schedule.schedule_id}');
+        const data = await resp.json();
+        if (data.error) return;
+
+        document.querySelectorAll('.seat-grid label').forEach(label => {
+          const input = label.querySelector('input');
+          const seatNum = input.value;
+          const isNowBooked = data.bookedSeats.includes(seatNum);
+          const wasBooked = input.disabled;
+
+          if (isNowBooked && !wasBooked) {
+            input.disabled = true;
+            if (input.checked) input.checked = false;
+            label.style.border = '2px solid var(--border)';
+            label.style.cursor = 'not-allowed';
+            label.style.background = 'rgba(0,0,0,0.5)';
+            label.style.color = 'var(--text-muted)';
+            label.style.opacity = '0.5';
+            const statusDiv = label.querySelector('div');
+            if (statusDiv) statusDiv.textContent = '(Terisi)';
+          } else if (!isNowBooked && wasBooked) {
+            input.disabled = false;
+            label.style.border = '2px solid var(--primary)';
+            label.style.cursor = 'pointer';
+            label.style.background = 'rgba(255, 75, 43, 0.1)';
+            label.style.color = 'var(--text-main)';
+            label.style.opacity = '1';
+            const statusDiv = label.querySelector('div');
+            if (statusDiv) { statusDiv.textContent = '(Tersedia)'; statusDiv.style.color = '#34d399'; }
+            label.addEventListener('click', () => {
+              document.querySelectorAll('.seat-grid label').forEach(l => {
+                if (!l.querySelector('input').disabled) {
+                  l.style.background = 'rgba(255, 75, 43, 0.1)';
+                  l.style.color = 'var(--text-main)';
+                }
+              });
+              label.style.background = 'var(--primary-gradient)';
+              label.style.color = '#fff';
+            });
+          }
+        });
+      } catch (e) { /* silent retry on next interval */ }
+    }, 15000);

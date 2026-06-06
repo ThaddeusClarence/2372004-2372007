@@ -4,6 +4,7 @@ const authAdmin = require('../middleware/authAdmin');
 const pool = require('../config/pool');
 const qrService = require('../utils/qrService');
 const bookingCodeService = require('../services/bookingCodeService');
+const seatAvailability = require('../services/seatAvailability');
 const Validation = require('../utils/validation');
 
 /* Dashboard */
@@ -158,18 +159,6 @@ router.post('/bookings/new', authAdmin, async (req, res) => {
             seat_id = sRes.insertId;
         }
 
-        // Check if the seat is already booked/held for this schedule
-        const [bookedSeatsData] = await pool.query(`
-            SELECT bs.booking_seat_id 
-            FROM booking_seats bs
-            JOIN bookings b ON bs.booking_id = b.booking_id
-            WHERE b.schedule_id = ? AND bs.seat_id = ? AND (b.status = 'confirmed' OR (b.status = 'pending' AND b.hold_expired_at > NOW()))
-        `, [schedule_id, seat_id]);
-
-        if (bookedSeatsData.length > 0) {
-            return res.send("<script>alert('Gagal membuat pesanan: Kursi ini sudah dipesan atau sedang ditahan!'); window.history.back();</script>");
-        }
-
         // Generate unique booking code
         const booking_code = await bookingCodeService.generateCode();
 
@@ -177,18 +166,22 @@ router.post('/bookings/new', authAdmin, async (req, res) => {
         try {
             await conn.beginTransaction();
 
+            await seatAvailability.assertSeatAvailable(conn, schedule_id, seat_id);
+
             const [result] = await conn.query(
                 "INSERT INTO bookings (user_id, schedule_id, booking_code, booking_channel, total_amount, passenger_name, status, created_at) VALUES (?, ?, ?, 'offline', ?, ?, 'confirmed', NOW())",
                 [user_id, schedule_id, booking_code, schedule.price, passenger_name]
             );
-            
-            // Insert seat mapping with captured price_at_booking
+
             await conn.query('INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)', [result.insertId, seat_id, schedule.price]);
 
             await conn.commit();
             res.redirect('/admin/bookings');
         } catch(err) {
             await conn.rollback();
+            if (err.message === 'SEAT_TAKEN') {
+                return res.send("<script>alert('Gagal membuat pesanan: Kursi ini sudah dipesan atau sedang ditahan!'); window.history.back();</script>");
+            }
             console.error('Offline booking transaction error:', err);
             res.send("<script>alert('Gagal membuat pesanan: Terjadi kesalahan database.'); window.history.back();</script>");
         } finally {
@@ -247,26 +240,14 @@ router.post('/bookings/reschedule/:id', authAdmin, async (req, res) => {
             seat_id = sRes.insertId;
         }
 
-        // Check if the seat is already booked/held for this schedule by someone else
-        const [bookedSeatsData] = await pool.query(`
-            SELECT bs.booking_seat_id 
-            FROM booking_seats bs
-            JOIN bookings b ON bs.booking_id = b.booking_id
-            WHERE b.schedule_id = ? AND bs.seat_id = ? AND b.booking_id != ? AND (b.status = 'confirmed' OR (b.status = 'pending' AND b.hold_expired_at > NOW()))
-        `, [schedule_id, seat_id, req.params.id]);
-
-        if (bookedSeatsData.length > 0) {
-            return res.send("<script>alert('Gagal reschedule: Kursi ini sudah dipesan oleh orang lain!'); window.history.back();</script>");
-        }
-
         const conn = await pool.getConnection();
         try {
             await conn.beginTransaction();
 
-            // Update booking schedule_id and total_amount
+            await seatAvailability.assertSeatAvailable(conn, schedule_id, seat_id, req.params.id);
+
             await conn.query('UPDATE bookings SET schedule_id=?, total_amount=? WHERE booking_id=?', [schedule_id, schedule.price, req.params.id]);
-            
-            // Refresh booking seats
+
             await conn.query('DELETE FROM booking_seats WHERE booking_id=?', [req.params.id]);
             await conn.query('INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)', [req.params.id, seat_id, schedule.price]);
 
@@ -274,6 +255,9 @@ router.post('/bookings/reschedule/:id', authAdmin, async (req, res) => {
             res.redirect('/admin/bookings');
         } catch(err) {
             await conn.rollback();
+            if (err.message === 'SEAT_TAKEN') {
+                return res.send("<script>alert('Gagal reschedule: Kursi ini sudah dipesan oleh orang lain!'); window.history.back();</script>");
+            }
             console.error('Reschedule transaction error:', err);
             res.send("<script>alert('Gagal reschedule: Terjadi kesalahan database.'); window.history.back();</script>");
         } finally {

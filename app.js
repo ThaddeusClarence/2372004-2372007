@@ -41,6 +41,17 @@ io.on('connection', (socket) => {
     console.log('Client connected');
 });
 
+// Periodic expiration of stale pending bookings (every 60 seconds)
+const ExpirationService = require('./services/expirationService');
+setInterval(async () => {
+    try {
+        const count = await ExpirationService.expireStaleBookings();
+        if (count > 0) console.log(`[auto-expire] Expired ${count} stale pending booking(s).`);
+    } catch (err) {
+        console.error('[auto-expire] Error:', err.message);
+    }
+}, 60 * 1000);
+
 server.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

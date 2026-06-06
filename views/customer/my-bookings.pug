@@ -34,7 +34,7 @@ block content
                 td <strong>#{b.booking_code}</strong>
                 td #{b.origin_city} &rarr; #{b.destination_city}
                 td #{new Date(b.departure_time).toLocaleString('id-ID')}
-                td #{b.seat_id}
+                td #{b.seat_numbers || '-'}
                 td
                   if b.status === 'pending'
                     span.badge.badge-pending Menunggu Pembayaran
