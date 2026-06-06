@@ -6,9 +6,12 @@ block content
     p Detail tiket dan QR Code
 
   .card.ticket-card
-    h3 Kode Booking: ##{booking.id}
-    if qrImg
-      img(src=qrImg alt="QR Code Booking")
+    h3 Kode Booking: ##{booking.booking_code}
+    if ticket && ticket.qr_code
+      img(src=ticket.qr_code alt="QR Code Booking")
+      p(style="font-size: 0.9em; color: var(--text-muted); margin-top: 5px;") Kode Tiket: #{ticket.ticket_code}
+    else
+      p(style="color: var(--text-muted);") E-Ticket belum diterbitkan untuk pesanan ini.
     .ticket-info
       p
         span.label Rute
@@ -20,8 +23,12 @@ block content
         span.label Kursi
         span #{booking.seat_number}
       p
-        span.label Email Pemesan
-        span #{booking.email}
+        span.label Penumpang
+        span #{booking.passenger_name}
+      if booking.email
+        p
+          span.label Email Pemesan
+          span #{booking.email}
       p
         span.label Status
         span
@@ -31,5 +38,9 @@ block content
             span.badge.badge-pending Pending
           else
             span.badge.badge-canceled #{booking.status}
+      if ticket && ticket.issued_at
+        p
+          span.label Diterbitkan
+          span #{new Date(ticket.issued_at).toLocaleString('id-ID')}
     div(style="margin-top: 1.5rem;")
       a.btn.btn-primary(href="/admin/bookings") Kembali ke Pemesanan

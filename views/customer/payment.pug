@@ -10,10 +10,15 @@ block content
       h3 Segera Lakukan Pembayaran
       p Waktu Anda untuk membayar sebelum kursi otomatis dibatalkan:
       .countdown(style="font-size: 2.5em; font-weight: bold; color: var(--danger); margin: 20px 0;" id="timer") 10:00
-      
+
       p Total yang harus dibayar:
       h2(style="color: var(--primary); margin-bottom: 30px;") Rp #{Number(booking.total_amount).toLocaleString('id-ID')}
-      
+
+      if error
+        .alert.alert-danger(style="max-width: 500px; margin: 0 auto 20px; padding: 15px; border-radius: 10px; background: rgba(220,53,69,0.15); border: 1px solid var(--danger); color: var(--danger); text-align: left;")
+          strong Pembayaran Gagal:
+          | #{error}
+
       form.payment-form(method="POST" action=`/customer/pay/${booking.booking_id}` style="text-align: left; max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.03); padding: 25px; border-radius: 15px; border: 1px solid var(--border);")
         h4(style="margin-bottom: 15px;") Pilih Metode Pembayaran
         
@@ -64,5 +69,7 @@ block content
       
     else if booking.status === 'confirmed'
       h3(style="color: var(--success);") Pembayaran Berhasil!
-      p Tiket Anda sudah aktif. Silakan cek menu Pesanan Saya untuk melihat E-Ticket.
-      a.btn.btn-primary(href="/customer/my-bookings" style="margin-top:20px;") Lihat E-Ticket
+      p Tiket Anda sudah aktif. Silakan lihat E-Ticket untuk detail perjalanan Anda.
+      div(style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;")
+        a.btn.btn-primary(href=`/customer/eticket/${booking.booking_id}`) Lihat E-Ticket
+        a.btn.btn-secondary(href="/customer/my-bookings") Pesanan Saya

@@ -46,14 +46,17 @@ block content
                     span.badge.badge-canceled Dibatalkan
                 td Rp #{Number(b.total_amount).toLocaleString('id-ID')}
                 td
-                  .actions(style="display: flex; gap: 10px; align-items: center;")
+                  .actions(style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;")
+                    a.btn.btn-secondary.btn-sm(href=`/customer/booking-detail/${b.booking_id}` style="padding: 8px 15px;") Detail
                     if b.status === 'pending'
                       a.btn.btn-success.btn-sm(href=`/customer/payment/${b.booking_id}`) Bayar
                       form(method="POST" action=`/customer/booking/${b.booking_id}/cancel` style="display:inline;")
                         button.btn.btn-danger.btn-sm(type="submit" style="padding: 8px 15px;") Batalkan
-                    if b.status === 'confirmed' && !isPast
-                      form(method="POST" action=`/customer/booking/${b.booking_id}/cancel` style="display:inline;")
-                        button.btn.btn-warning.btn-sm(type="submit" onclick="return confirm('Anda yakin ingin membatalkan pesanan (Refund)?')" style="padding: 8px 15px;") Batalkan
+                    if b.status === 'confirmed'
+                      a.btn.btn-primary.btn-sm(href=`/customer/eticket/${b.booking_id}` style="padding: 8px 15px;") E-Ticket
+                      if !isPast
+                        form(method="POST" action=`/customer/booking/${b.booking_id}/cancel` style="display:inline;")
+                          button.btn.btn-warning.btn-sm(type="submit" onclick="return confirm('Anda yakin ingin membatalkan pesanan (Refund)?')" style="padding: 8px 15px;") Batalkan
                     if isUsedOrCancelled
                       form(method="POST" action=`/customer/booking/${b.booking_id}/delete` style="display:inline;")
                         button.btn.btn-danger.btn-sm(type="submit" onclick="return confirm('Hapus tiket ini dari riwayat?')" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 8px 15px;") Hapus

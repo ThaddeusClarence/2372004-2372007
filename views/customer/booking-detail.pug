@@ -1,0 +1,122 @@
+extends ../layout-customer
+
+block content
+  style.
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    @media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+    .detail-card { background: rgba(255,255,255,0.03); border-radius: 15px; border: 1px solid var(--border); padding: 25px; }
+    .detail-card h4 { margin-bottom: 15px; color: var(--primary); font-size: 1.05em; }
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--text-muted); font-size: 0.9em; }
+    .detail-value { font-weight: 500; text-align: right; }
+    .detail-actions { margin-top: 25px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  .page-header
+    h2 Detail Pesanan
+    p Informasi lengkap pesanan ##{booking.booking_code}
+
+  .detail-grid
+    .detail-card
+      h4 Informasi Perjalanan
+      .detail-row
+        span.detail-label Rute
+        span.detail-value #{booking.origin_city} → #{booking.destination_city}
+      .detail-row
+        span.detail-label Keberangkatan
+        span.detail-value #{new Date(booking.departure_time).toLocaleString('id-ID')}
+      if booking.arrival_estimate
+        .detail-row
+          span.detail-label Estimasi Tiba
+          span.detail-value #{new Date(booking.arrival_estimate).toLocaleString('id-ID')}
+      if booking.pickup_point
+        .detail-row
+          span.detail-label Titik Jemput
+          span.detail-value #{booking.pickup_point}
+      if booking.dropoff_point
+        .detail-row
+          span.detail-label Titik Turun
+          span.detail-value #{booking.dropoff_point}
+      if booking.vehicle_type
+        .detail-row
+          span.detail-label Kendaraan
+          span.detail-value #{booking.vehicle_type} (#{booking.plate_number})
+
+    .detail-card
+      h4 Informasi Penumpang
+      .detail-row
+        span.detail-label Kode Booking
+        span.detail-value #{booking.booking_code}
+      .detail-row
+        span.detail-label Nama Penumpang
+        span.detail-value #{booking.passenger_name}
+      .detail-row
+        span.detail-label Kursi
+        span.detail-value #{booking.seat_numbers || '-'}
+      .detail-row
+        span.detail-label Channel
+        span.detail-value #{booking.booking_channel === 'online' ? 'Online' : 'Offline (Admin)'}
+      .detail-row
+        span.detail-label Dipesan Pada
+        span.detail-value #{new Date(booking.created_at).toLocaleString('id-ID')}
+
+    .detail-card
+      h4 Status & Pembayaran
+      .detail-row
+        span.detail-label Status
+        span.detail-value
+          if booking.status === 'pending'
+            span.badge.badge-pending Menunggu Pembayaran
+          else if booking.status === 'confirmed'
+            span.badge.badge-confirmed Lunas
+          else if booking.status === 'expired'
+            span.badge.badge-canceled Kadaluarsa
+          else
+            span.badge.badge-canceled Dibatalkan
+      .detail-row
+        span.detail-label Total Bayar
+        span.detail-value(style="color: var(--primary); font-weight: 700;") Rp #{Number(booking.total_amount).toLocaleString('id-ID')}
+      if payment
+        .detail-row
+          span.detail-label Metode Bayar
+          span.detail-value #{payment.method}
+        .detail-row
+          span.detail-label Status Bayar
+          span.detail-value
+            if payment.status === 'paid'
+              span(style="color: var(--success);") Lunas
+            else
+              span(style="color: var(--warning);") #{payment.status}
+        if payment.paid_at
+          .detail-row
+            span.detail-label Dibayar Pada
+            span.detail-value #{new Date(payment.paid_at).toLocaleString('id-ID')}
+        if payment.gateway_transaction_id
+          .detail-row
+            span.detail-label ID Transaksi
+            span.detail-value(style="font-size: 0.85em;") #{payment.gateway_transaction_id}
+      if booking.status === 'pending' && booking.hold_expired_at
+        .detail-row
+          span.detail-label Batas Bayar
+          span.detail-value(style="color: var(--danger);") #{new Date(booking.hold_expired_at).toLocaleString('id-ID')}
+
+    if ticket
+      .detail-card
+        h4 E-Ticket
+        .detail-row
+          span.detail-label Kode Tiket
+          span.detail-value #{ticket.ticket_code}
+        .detail-row
+          span.detail-label Diterbitkan
+          span.detail-value #{new Date(ticket.issued_at).toLocaleString('id-ID')}
+        div(style="text-align: center; margin-top: 15px;")
+          a.btn.btn-primary(href=`/customer/eticket/${booking.booking_id}`) Lihat E-Ticket & QR
+
+  .detail-actions
+    if booking.status === 'pending'
+      a.btn.btn-success(href=`/customer/payment/${booking.booking_id}`) Bayar Sekarang
+      form(method="POST" action=`/customer/booking/${booking.booking_id}/cancel` style="display:inline;")
+        button.btn.btn-danger(type="submit" onclick="return confirm('Batalkan pesanan ini?')") Batalkan Pesanan
+    if booking.status === 'confirmed'
+      a.btn.btn-primary(href=`/customer/eticket/${booking.booking_id}`) Lihat E-Ticket
+    a.btn.btn-secondary(href="/customer/my-bookings") Kembali ke Pesanan Saya

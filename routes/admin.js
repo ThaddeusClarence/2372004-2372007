@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const authAdmin = require('../middleware/authAdmin');
 const pool = require('../config/pool');
-const qrService = require('../utils/qrService');
 const bookingCodeService = require('../services/bookingCodeService');
 const seatAvailability = require('../services/seatAvailability');
+const ticketService = require('../services/ticketService');
 const Validation = require('../utils/validation');
 
 /* Dashboard */
@@ -175,6 +175,8 @@ router.post('/bookings/new', authAdmin, async (req, res) => {
 
             await conn.query('INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)', [result.insertId, seat_id, schedule.price]);
 
+            await ticketService.issueTicket(conn, result.insertId, booking_code);
+
             await conn.commit();
             res.redirect('/admin/bookings');
         } catch(err) {
@@ -304,9 +306,13 @@ router.get('/eticket/:bookingId', authAdmin, async (req, res) => {
     `, [req.params.bookingId]);
     if (!rows.length) return res.status(404).send('Booking not found');
     const booking = rows[0];
-    const qrData = `TRAVELGO|BookingID:${booking.id}|Route:${booking.origin}-${booking.destination}|Seat:${booking.seat_number}|Email:${booking.email}`;
-    const qrImg = await qrService.generateBase64(qrData);
-    res.render('admin/eticket', { title: 'E-Ticket', qrImg, booking, user: req.session.user });
+
+    let ticket = await ticketService.getTicketByBookingId(pool, booking.booking_id);
+    if (!ticket && booking.status === 'confirmed') {
+        ticket = await ticketService.issueTicket(pool, booking.booking_id, booking.booking_code);
+    }
+
+    res.render('admin/eticket', { title: 'E-Ticket', ticket, booking, user: req.session.user });
 });
 
 module.exports = router;

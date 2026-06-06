@@ -1,0 +1,72 @@
+extends ../layout-customer
+
+block content
+  style.
+    .ticket-container { max-width: 600px; margin: 0 auto; }
+    .ticket-header { text-align: center; padding: 30px 20px; border-bottom: 2px dashed var(--border); }
+    .ticket-qr { text-align: center; padding: 25px 20px; }
+    .ticket-qr img { max-width: 200px; border-radius: 12px; background: #fff; padding: 10px; }
+    .ticket-details { padding: 20px 25px; }
+    .ticket-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .ticket-row:last-child { border-bottom: none; }
+    .ticket-label { color: var(--text-muted); font-size: 0.9em; }
+    .ticket-value { font-weight: 600; text-align: right; }
+    .ticket-actions { text-align: center; padding: 20px; }
+
+  .page-header
+    h2 E-Ticket
+    p Tiket elektronik perjalanan Anda
+
+  .card.ticket-container(style="margin-top:20px;")
+    .ticket-header
+      h3(style="color: var(--primary); margin-bottom: 5px;") TravelGo
+      p.badge.badge-confirmed(style="display: inline-block;") E-Ticket Aktif
+      p(style="margin-top: 10px; font-size: 0.9em; color: var(--text-muted);") Kode Tiket: #{ticket.ticket_code}
+
+    .ticket-qr
+      if ticket.qr_code
+        img(src=ticket.qr_code alt="QR Code E-Ticket")
+      p(style="font-size: 0.85em; color: var(--text-muted); margin-top: 10px;") Tunjukkan QR ini saat boarding
+
+    .ticket-details
+      .ticket-row
+        span.ticket-label Kode Booking
+        span.ticket-value #{booking.booking_code}
+      .ticket-row
+        span.ticket-label Penumpang
+        span.ticket-value #{booking.passenger_name}
+      .ticket-row
+        span.ticket-label Rute
+        span.ticket-value #{booking.origin_city} → #{booking.destination_city}
+      .ticket-row
+        span.ticket-label Keberangkatan
+        span.ticket-value #{new Date(booking.departure_time).toLocaleString('id-ID')}
+      if booking.arrival_estimate
+        .ticket-row
+          span.ticket-label Estimasi Tiba
+          span.ticket-value #{new Date(booking.arrival_estimate).toLocaleString('id-ID')}
+      if booking.pickup_point
+        .ticket-row
+          span.ticket-label Titik Jemput
+          span.ticket-value #{booking.pickup_point}
+      if booking.dropoff_point
+        .ticket-row
+          span.ticket-label Titik Turun
+          span.ticket-value #{booking.dropoff_point}
+      .ticket-row
+        span.ticket-label Kursi
+        span.ticket-value #{booking.seat_numbers || '-'}
+      if booking.vehicle_type
+        .ticket-row
+          span.ticket-label Kendaraan
+          span.ticket-value #{booking.vehicle_type} (#{booking.plate_number})
+      .ticket-row
+        span.ticket-label Total Bayar
+        span.ticket-value(style="color: var(--primary);") Rp #{Number(booking.total_amount).toLocaleString('id-ID')}
+      .ticket-row
+        span.ticket-label Diterbitkan
+        span.ticket-value #{new Date(ticket.issued_at).toLocaleString('id-ID')}
+
+    .ticket-actions
+      a.btn.btn-primary(href=`/customer/booking-detail/${booking.booking_id}` style="margin-right: 10px;") Detail Pesanan
+      a.btn.btn-secondary(href="/customer/my-bookings") Kembali
