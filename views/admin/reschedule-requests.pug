@@ -1,0 +1,47 @@
+extends ../layout-admin
+
+block content
+  .page-header
+    h2 Permintaan Reschedule
+    p Kelola permintaan reschedule dari pelanggan
+
+  .card
+    if requests && requests.length
+      .table-wrapper
+        table
+          thead
+            tr
+              th ID
+              th Kode Booking
+              th Pelanggan
+              th Kursi Baru
+              th Keberangkatan Baru
+              th Status
+              th Diajukan
+              th Aksi
+          tbody
+            each r in requests
+              tr
+                td #{r.request_id}
+                td <strong>#{r.booking_code}</strong>
+                td #{r.customer_email}
+                td #{r.target_seat_number}
+                td #{new Date(r.target_departure).toLocaleString('id-ID')}
+                td
+                  if r.status === 'pending'
+                    span.badge.badge-pending Menunggu
+                  else if r.status === 'approved'
+                    span.badge.badge-confirmed Disetujui
+                  else
+                    span.badge.badge-canceled Ditolak
+                td #{new Date(r.requested_at).toLocaleString('id-ID')}
+                td
+                  .actions
+                    if r.status === 'pending'
+                      a.btn.btn-primary.btn-sm(href=`/admin/reschedule-requests/${r.request_id}`) Detail
+                    else
+                      a.btn.btn-secondary.btn-sm(href=`/admin/reschedule-requests/${r.request_id}`) Lihat
+    else
+      .empty-state
+        h3 Tidak ada permintaan
+        p Belum ada permintaan reschedule yang masuk.

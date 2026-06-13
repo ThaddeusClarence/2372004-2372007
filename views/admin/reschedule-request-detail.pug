@@ -1,0 +1,71 @@
+extends ../layout-admin
+
+block content
+  .page-header
+    h2 Detail Permintaan Reschedule
+    p Request ID: #{request.request_id}
+
+  .detail-grid
+    .detail-card
+      h4 Jadwal Saat Ini
+      .detail-row
+        span.detail-label Kode Booking
+        span.detail-value #{request.booking_code}
+      .detail-row
+        span.detail-label Nama Penumpang
+        span.detail-value #{request.passenger_name}
+      .detail-row
+        span.detail-label Rute
+        span.detail-value #{request.origin_city} → #{request.destination_city}
+      .detail-row
+        span.detail-label Keberangkatan
+        span.detail-value #{new Date(request.current_departure).toLocaleString('id-ID')}
+
+    .detail-card
+      h4 Jadwal yang Diminta
+      .detail-row
+        span.detail-label Rute Baru
+        span.detail-value #{request.target_origin} → #{request.target_destination}
+      .detail-row
+        span.detail-label Keberangkatan Baru
+        span.detail-value #{new Date(request.target_departure).toLocaleString('id-ID')}
+      .detail-row
+        span.detail-label Kursi Diminta
+        span.detail-value #{request.target_seat_number}
+      if request.reason
+        .detail-row
+          span.detail-label Alasan
+          span.detail-value #{request.reason}
+
+  .detail-card
+    h4 Status Permintaan
+    .detail-row
+      span.detail-label Status
+      span.detail-value
+        if request.status === 'pending'
+          span.badge.badge-pending Menunggu
+        else if request.status === 'approved'
+          span.badge.badge-confirmed Disetujui
+        else
+          span.badge.badge-canceled Ditolak
+    .detail-row
+      span.detail-label Diajukan Pada
+      span.detail-value #{new Date(request.requested_at).toLocaleString('id-ID')}
+
+  if request.status === 'pending'
+    .card(style="margin-top: 20px;")
+      h4 Tindakan Admin
+      form(method="POST" action=`/admin/reschedule-requests/${request.request_id}/approve`)
+        .form-group
+          label(for="admin_notes") Catatan Admin (opsional)
+          textarea.form-control(name="admin_notes" rows="3" placeholder="Catatan untuk persetujuan...")
+        div(style="margin-top: 15px;")
+          button.btn.btn-success(type="submit" onclick="return confirm('Setujui permintaan reschedule ini? Booking akan diubah ke jadwal baru.')") Setujui Reschedule
+      form(method="POST" action=`/admin/reschedule-requests/${request.request_id}/reject` style="margin-top: 10px;")
+        .form-group
+          label(for="admin_notes_reject") Alasan Penolakan
+          textarea.form-control(name="admin_notes" rows="3" placeholder="Berikan alasan penolakan...")
+        div(style="margin-top: 15px;")
+          button.btn.btn-danger(type="submit" onclick="return confirm('Tolak permintaan reschedule ini?')") Tolak Permintaan
+
+  a.btn.btn-secondary(href="/admin/reschedule-requests" style="margin-top: 20px;") Kembali ke Daftar Permintaan

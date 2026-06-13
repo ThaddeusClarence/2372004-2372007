@@ -1,0 +1,47 @@
+extends ../layout-admin
+
+block content
+  .page-header
+    h2 Permintaan Pembatalan
+    p Kelola permintaan pembatalan dari pelanggan
+
+  .card
+    if requests && requests.length
+      .table-wrapper
+        table
+          thead
+            tr
+              th ID
+              th Kode Booking
+              th Pelanggan
+              th Rute
+              th Keberangkatan
+              th Status Request
+              th Diajukan
+              th Aksi
+          tbody
+            each r in requests
+              tr
+                td #{r.request_id}
+                td <strong>#{r.booking_code}</strong>
+                td #{r.customer_email}
+                td #{r.origin_city} → #{r.destination_city}
+                td #{new Date(r.departure_time).toLocaleString('id-ID')}
+                td
+                  if r.status === 'pending'
+                    span.badge.badge-pending Menunggu
+                  else if r.status === 'approved'
+                    span.badge.badge-confirmed Disetujui
+                  else
+                    span.badge.badge-canceled Ditolak
+                td #{new Date(r.requested_at).toLocaleString('id-ID')}
+                td
+                  .actions
+                    if r.status === 'pending'
+                      a.btn.btn-primary.btn-sm(href=`/admin/cancellation-requests/${r.request_id}`) Detail
+                    else
+                      a.btn.btn-secondary.btn-sm(href=`/admin/cancellation-requests/${r.request_id}`) Lihat
+    else
+      .empty-state
+        h3 Tidak ada permintaan
+        p Belum ada permintaan pembatalan yang masuk.

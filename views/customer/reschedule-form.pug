@@ -1,0 +1,37 @@
+extends ../layout-customer
+
+block content
+  style.
+    .schedule-option { background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; }
+    .schedule-option h5 { margin: 0 0 10px 0; }
+
+  .page-header
+    h2 Ajukan Reschedule
+    p Pilih jadwal baru untuk pemesanan #{booking.booking_code}
+
+  form(method="POST" action=`/customer/booking/${booking.booking_id}/reschedule-request`)
+    .card
+      .form-group
+        label(for="reason") Alasan Reschedule (opsional)
+        textarea.form-control(id="reason" name="reason" rows="3" placeholder="Berikan alasan reschedule...")
+
+      .form-group
+        label Pilih Jadwal Baru
+        if schedules && schedules.length
+          each sched in schedules
+            .schedule-option
+              input(type="radio" name="target_schedule_id" value=sched.schedule_id id=`sched-${sched.schedule_id}` required)
+              label(for=`sched-${sched.schedule_id}`)
+                strong #{new Date(sched.departure_time).toLocaleString('id-ID')}
+                br
+                small Kendaraan: #{sched.vehicle_type} (#{sched.plate_number}) - Kursi tersedia: #{sched.capacity - sched.bookedSeats.length}
+        else
+          p Tidak ada jadwal tersedia untuk rute ini.
+
+      .form-group
+        label(for="target_seat_number") Nomor Kursi Baru
+        input.form-control(type="text" id="target_seat_number" name="target_seat_number" placeholder="Contoh: 1A, 2B, dll" required)
+
+      .detail-actions
+        button.btn.btn-success(type="submit") Ajukan Reschedule
+        a.btn.btn-secondary(href="/customer/booking-detail/" + booking.booking_id) Batal
