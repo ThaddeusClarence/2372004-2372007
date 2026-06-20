@@ -4,6 +4,12 @@ const bookingCodeService = require('../services/bookingCodeService');
 const seatAvailability = require('../services/seatAvailability');
 const { formatIDR } = require('../utils/format');
 
+// CODE-CITE:
+//   Title: TravelGo Automated Test Suite
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Unit and integration tests for booking codes, IDR formatting, and seat availability.
+//   Lines Range: 45
 async function runTests() {
     console.log('====================================');
     console.log('Running TravelGo Test Suite...');

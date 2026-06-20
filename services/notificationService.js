@@ -1,5 +1,11 @@
 const pool = require('../config/pool');
 
+// CODE-CITE:
+//   Title: Real-Time Notification Service
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Service handling database persistence and Socket.IO broadcast for notifications.
+//   Lines Range: 39
 class NotificationService {
     /**
      * Create and broadcast a notification.

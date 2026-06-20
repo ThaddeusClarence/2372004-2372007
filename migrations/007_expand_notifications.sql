@@ -1,3 +1,9 @@
+-- CODE-CITE:
+--   Title: Expand Notifications Table Schema Migration
+--   Type: ai
+--   Value: Antigravity Gemini
+--   Notes: SQL migration script to add notification type, target users, and booking references.
+--   Lines Range: 8
 -- Expand notifications table to support advanced types and targets
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) NULL AFTER admin_id;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS user_id BIGINT UNSIGNED NULL AFTER type;

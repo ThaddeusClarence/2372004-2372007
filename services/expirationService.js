@@ -1,5 +1,11 @@
 const pool = require('../config/pool');
 
+// CODE-CITE:
+//   Title: Stale Pending Bookings Expirer
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Updates overdue pending bookings to expired and notifies customers.
+//   Lines Range: 26
 class ExpirationService {
     /**
      * Expire pending bookings that have passed their hold window.

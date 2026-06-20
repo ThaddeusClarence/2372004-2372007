@@ -7,6 +7,12 @@ router.get('/', (req, res) => {
     res.render('home', { title: 'TravelGo - Pencarian Jadwal Travel' });
 });
 
+// CODE-CITE:
+//   Title: Unified Login Interface Route
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Unified login endpoint handling for both admin and customer authentication.
+//   Lines Range: 32
 router.get('/login', (req, res) => {
     res.render('login', { title: 'Masuk - TravelGo', error: null });
 });
@@ -63,6 +69,12 @@ router.get('/register', (req, res) => {
     res.render('register', { title: 'Register - TravelGo', error: null });
 });
 
+// CODE-CITE:
+//   Title: Session Logout Handler
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Destroys user session and redirects to homepage.
+//   Lines Range: 5
 router.get('/logout', (req, res) => {
     req.session.destroy(() => {
         res.redirect('/');

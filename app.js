@@ -22,6 +22,12 @@ app.use(session({
     saveUninitialized: false
 }));
 
+// CODE-CITE:
+//   Title: Express App Bootstrap View Helpers Configuration
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Setting up local variables (formatIDR, sessionUser) for view rendering.
+//   Lines Range: 6
 // Local view helpers
 const { formatIDR } = require('./utils/format');
 app.use((req, res, next) => {

@@ -50,3 +50,5 @@ Homestead.yaml
 /tasks.md
 .poolside/settings.local.yaml
 docs.md
+.agents/
+Progress-7.md

@@ -207,6 +207,12 @@ router.get("/bookings/new", authAdmin, async (req, res) => {
     });
 });
 
+// CODE-CITE:
+//   Title: Offline Multi-Passenger Booking Handler
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Validates and saves multi-passenger offline bookings in a transaction, issuing e-tickets and broadcasting socket notifications.
+//   Lines Range: 123
 router.post("/bookings/new", authAdmin, async (req, res) => {
     try {
         const { schedule_id, seat_numbers } = req.body;
@@ -482,6 +488,12 @@ router.post("/bookings/reschedule/:id", authAdmin, async (req, res) => {
 });
 
 /* Notifications */
+// CODE-CITE:
+//   Title: Admin Notifications Dashboard & Broadcaster
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Endpoint to retrieve all notifications and broadcast new manual notifications to connected clients.
+//   Lines Range: 31
 router.get("/notifications", authAdmin, async (req, res) => {
     try {
         const [notifications] = await pool.query(
@@ -581,6 +593,12 @@ router.get("/cancellation-requests/:id", authAdmin, async (req, res) => {
     });
 });
 
+// CODE-CITE:
+//   Title: Cancellation Requests Approval and Rejection Controllers
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Transactional approval/rejection endpoints for passenger cancellations, with DB state transition and real-time user notification.
+//   Lines Range: 82
 router.post(
     "/cancellation-requests/:id/approve",
     authAdmin,
@@ -693,6 +711,12 @@ router.get("/reschedule-requests/:id", authAdmin, async (req, res) => {
     });
 });
 
+// CODE-CITE:
+//   Title: Reschedule Requests Approval and Rejection Controllers
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Transactional endpoints to approve or reject customer rescheduling requests, releasing old seats, locking new seats, and updating DB state.
+//   Lines Range: 73
 router.post("/reschedule-requests/:id/approve", authAdmin, async (req, res) => {
     const conn = await pool.getConnection();
     try {

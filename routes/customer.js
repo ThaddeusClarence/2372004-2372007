@@ -162,6 +162,12 @@ router.get("/api/seats/:scheduleId", async (req, res) => {
 });
 
 // Process Booking
+// CODE-CITE:
+//   Title: Process Online Booking with Multi-Passenger Registration
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Validates and saves multi-passenger online bookings, asserts seat availability, writes booking details, and fires a real-time event.
+//   Lines Range: 114
 router.post("/booking/:scheduleId", async (req, res) => {
     try {
         const scheduleId = req.params.scheduleId;
@@ -338,6 +344,12 @@ router.get("/payment/:bookingId", async (req, res) => {
 });
 
 // Confirm Payment
+// CODE-CITE:
+//   Title: Confirm Online Payment Controller
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Validates booking status, runs simulated charge, commits transaction to create payment & issue e-ticket, and triggers notification.
+//   Lines Range: 104
 router.post("/pay/:bookingId", async (req, res) => {
     try {
         const bookingId = req.params.bookingId;
@@ -603,6 +615,12 @@ router.get("/my-bookings", async (req, res) => {
 });
 
 // Cancel Booking (for pending bookings only - direct cancellation)
+// CODE-CITE:
+//   Title: Cancel Pending Booking Controller
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Cancels a pending unpaid booking directly, committing to DB and sending cancellation notification.
+//   Lines Range: 40
 router.post("/booking/:bookingId/cancel", async (req, res) => {
     const conn = await pool.getConnection();
     try {
@@ -649,6 +667,12 @@ router.post("/booking/:bookingId/cancel", async (req, res) => {
 });
 
 // Create cancellation request (for confirmed bookings - requires admin approval)
+// CODE-CITE:
+//   Title: Create Cancellation Request Controller
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Submits a cancellation request for a confirmed booking to be reviewed by admin, logging database request and triggering notification.
+//   Lines Range: 58
 router.post("/booking/:bookingId/cancel-request", async (req, res) => {
     const conn = await pool.getConnection();
     try {
@@ -798,6 +822,12 @@ router.get("/booking/:bookingId/reschedule", async (req, res) => {
 });
 
 // Submit reschedule request
+// CODE-CITE:
+//   Title: Submit Reschedule Request Controller
+//   Type: ai
+//   Value: Antigravity Gemini
+//   Notes: Transactional submission of rescheduling request with target schedule, target seat, and reason, firing real-time event.
+//   Lines Range: 68
 router.post("/booking/:bookingId/reschedule-request", async (req, res) => {
     try {
         const bookingId = req.params.bookingId;
