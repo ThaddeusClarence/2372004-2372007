@@ -47,9 +47,23 @@ block content
       .detail-row
         span.detail-label Kode Booking
         span.detail-value #{booking.booking_code}
-      .detail-row
-        span.detail-label Nama Penumpang
-        span.detail-value #{booking.passenger_name}
+      if passengers && passengers.length
+        each p, idx in passengers
+          div(style="border-top: 1px solid rgba(255,255,255,0.05); margin-top: 10px; padding-top: 10px;")
+            h5(style="color: var(--primary); margin: 0 0 5px 0; font-size: 0.95em;") Penumpang #{idx + 1}
+            .detail-row
+              span.detail-label Nama
+              span.detail-value #{p.full_name}
+            .detail-row
+              span.detail-label Identitas
+              span.detail-value #{p.identity_number}
+            .detail-row
+              span.detail-label Telepon
+              span.detail-value #{p.phone}
+      else
+        .detail-row
+          span.detail-label Nama Penumpang
+          span.detail-value #{booking.passenger_name}
       .detail-row
         span.detail-label Kursi
         span.detail-value #{booking.seat_numbers || '-'}
@@ -128,3 +142,18 @@ block content
           button.btn.btn-warning(type="submit" onclick="return confirm('Ajukan permintaan pembatalan? Admin akan meninjau permintaan ini.')") Ajukan Pembatalan
       a.btn.btn-secondary(href=`/customer/booking/${booking.booking_id}/reschedule`) Reschedule Jadwal
     a.btn.btn-secondary(href="/customer/my-bookings") Kembali ke Pesanan Saya
+
+  script(src="/socket.io/socket.io.js")
+  script.
+    const socket = io();
+    
+    // Listen for updates on this specific booking
+    socket.on('bookingUpdate', function(data) {
+      if (Number(data.id) === Number('#{booking.booking_id}')) {
+        window.location.reload();
+      }
+    });
+
+    socket.on('booking_#{booking.booking_id}', function(data) {
+      window.location.reload();
+    });

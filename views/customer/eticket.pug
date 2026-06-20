@@ -32,9 +32,15 @@ block content
       .ticket-row
         span.ticket-label Kode Booking
         span.ticket-value #{booking.booking_code}
-      .ticket-row
-        span.ticket-label Penumpang
-        span.ticket-value #{booking.passenger_name}
+      if passengers && passengers.length
+        each p, idx in passengers
+          .ticket-row(style="flex-direction: column; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);")
+            span.ticket-label Penumpang #{idx + 1}
+            span.ticket-value(style="margin-top: 5px; text-align: left;") #{p.full_name} (#{p.identity_number}) - Telp: #{p.phone}
+      else
+        .ticket-row
+          span.ticket-label Penumpang
+          span.ticket-value #{booking.passenger_name}
       .ticket-row
         span.ticket-label Rute
         span.ticket-value #{booking.origin_city} → #{booking.destination_city}

@@ -7,13 +7,14 @@ const paymentService = require("../services/paymentService");
 const ticketService = require("../services/ticketService");
 const requestService = require("../services/requestService");
 const Validation = require("../utils/validation");
+const NotificationService = require("../services/notificationService");
 
 // Middleware to check if customer is logged in
 const authCustomer = (req, res, next) => {
     if (req.session.user && req.session.user.role === "customer") {
         next();
     } else {
-        res.redirect("/login-customer");
+        res.redirect("/login");
     }
 };
 
@@ -164,17 +165,27 @@ router.get("/api/seats/:scheduleId", async (req, res) => {
 router.post("/booking/:scheduleId", async (req, res) => {
     try {
         const scheduleId = req.params.scheduleId;
-        const { passenger_name, seat_number } = req.body;
+        const seat_numbers = Array.isArray(req.body.seat_numbers) ? req.body.seat_numbers : (req.body.seat_numbers ? [req.body.seat_numbers] : []);
         const userId = req.session.user.id;
 
-        const reqErr = Validation.validateRequired(
-            ["passenger_name", "seat_number"],
-            req.body,
-        );
-        if (reqErr) {
+        if (seat_numbers.length === 0) {
             return res.send(
-                `<script>alert('${reqErr}'); window.history.back();</script>`,
+                `<script>alert('Pilihlah minimal satu kursi!'); window.history.back();</script>`,
             );
+        }
+
+        // Validate passenger details for each selected seat
+        const passengersData = [];
+        for (const s of seat_numbers) {
+            const name = req.body[`passenger_name_${s}`];
+            const identity = req.body[`passenger_identity_${s}`];
+            const phone = req.body[`passenger_phone_${s}`];
+            if (!name || !identity || !phone) {
+                return res.send(
+                    `<script>alert('Lengkapi semua data penumpang untuk kursi ${s}!'); window.history.back();</script>`,
+                );
+            }
+            passengersData.push({ seat_number: s, name, identity, phone });
         }
 
         const [schedules] = await pool.query(
@@ -188,33 +199,43 @@ router.post("/booking/:scheduleId", async (req, res) => {
         }
         const schedule = schedules[0];
 
-        let seat_id = null;
-        const [seats] = await pool.query(
-            "SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?",
-            [schedule.vehicle_id, seat_number],
-        );
-        if (seats.length > 0) {
-            seat_id = seats[0].seat_id;
-        } else {
-            const [sRes] = await pool.query(
-                "INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)",
-                [schedule.vehicle_id, seat_number],
+        // Find or create seat IDs
+        for (const p of passengersData) {
+            let seat_id = null;
+            const [seats] = await pool.query(
+                "SELECT seat_id FROM seats WHERE vehicle_id=? AND seat_number=?",
+                [schedule.vehicle_id, p.seat_number],
             );
-            seat_id = sRes.insertId;
+            if (seats.length > 0) {
+                seat_id = seats[0].seat_id;
+            } else {
+                const [sRes] = await pool.query(
+                    "INSERT INTO seats (vehicle_id, seat_number) VALUES (?, ?)",
+                    [schedule.vehicle_id, p.seat_number],
+                );
+                seat_id = sRes.insertId;
+            }
+            p.seat_id = seat_id;
         }
 
         const bookingCode = await bookingCodeService.generateCode();
+        const totalAmount = Number(schedule.price) * passengersData.length;
+        const legacyPassengerName = passengersData[0].name;
 
         const conn = await pool.getConnection();
         try {
             await conn.beginTransaction();
 
-            await seatAvailability.assertSeatAvailable(
-                conn,
-                scheduleId,
-                seat_id,
-            );
+            // Check availability for all seats
+            for (const p of passengersData) {
+                await seatAvailability.assertSeatAvailable(
+                    conn,
+                    scheduleId,
+                    p.seat_id,
+                );
+            }
 
+            // Insert into bookings
             const [result] = await conn.query(
                 `
                 INSERT INTO bookings (user_id, schedule_id, booking_code, booking_channel, total_amount, passenger_name, status, hold_expired_at, created_at)
@@ -224,25 +245,45 @@ router.post("/booking/:scheduleId", async (req, res) => {
                     userId,
                     scheduleId,
                     bookingCode,
-                    schedule.price,
-                    passenger_name,
+                    totalAmount,
+                    legacyPassengerName,
                 ],
             );
 
             const bookingId = result.insertId;
 
-            await conn.query(
-                "INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)",
-                [bookingId, seat_id, schedule.price],
-            );
+            // Insert into booking_seats and passengers table
+            for (const p of passengersData) {
+                await conn.query(
+                    "INSERT INTO booking_seats (booking_id, seat_id, price_at_booking) VALUES (?, ?, ?)",
+                    [bookingId, p.seat_id, schedule.price],
+                );
+
+                await conn.query(
+                    "INSERT INTO passengers (booking_id, full_name, identity_number, phone) VALUES (?, ?, ?, ?)",
+                    [bookingId, p.name, p.identity, p.phone],
+                );
+            }
 
             await conn.commit();
+
+            // Wire notification using the NotificationService
+            const io = req.app.get("io");
+            await NotificationService.createNotification({
+                type: "booking_created",
+                userId,
+                bookingId,
+                message: `Pemesanan online baru dibuat dengan kode ${bookingCode}`,
+                payload: { bookingCode, totalAmount },
+                io
+            });
+
             res.redirect(`/customer/payment/${bookingId}`);
         } catch (err) {
             await conn.rollback();
             if (err.message === "SEAT_TAKEN") {
                 return res.send(
-                    "Maaf, kursi sudah dipesan orang lain. Silakan kembali dan pilih kursi lain.",
+                    "Maaf, salah satu kursi yang Anda pilih sudah dipesan orang lain. Silakan kembali dan pilih kursi lain.",
                 );
             }
             console.error("Online booking transaction error:", err);
@@ -387,6 +428,18 @@ router.post("/pay/:bookingId", async (req, res) => {
             );
 
             await conn.commit();
+
+            // Wire notification using the NotificationService
+            const io = req.app.get("io");
+            await NotificationService.createNotification({
+                type: "payment_confirmed",
+                userId,
+                bookingId,
+                message: `Pembayaran lunas untuk booking ${booking.booking_code}. E-Ticket telah diterbitkan.`,
+                payload: { bookingCode: booking.booking_code, transactionId: gatewayResult.transactionId },
+                io
+            });
+
             res.redirect("/customer/my-bookings");
         } catch (err) {
             await conn.rollback();
@@ -439,11 +492,17 @@ router.get("/eticket/:bookingId", async (req, res) => {
             );
         }
 
+        const [passengers] = await pool.query(
+            "SELECT * FROM passengers WHERE booking_id = ?",
+            [bookingId]
+        );
+
         res.render("customer/eticket", {
             title: "E-Ticket",
             user: req.session.user,
             booking,
             ticket,
+            passengers,
         });
     } catch (e) {
         console.error("E-Ticket error:", e);
@@ -501,6 +560,11 @@ router.get("/booking-detail/:bookingId", async (req, res) => {
         const latestCancelRequest =
             cancelRequest && cancelRequest.length > 0 ? cancelRequest[0] : null;
 
+        const [passengers] = await pool.query(
+            "SELECT * FROM passengers WHERE booking_id = ?",
+            [bookingId]
+        );
+
         res.render("customer/booking-detail", {
             title: "Detail Pesanan",
             user: req.session.user,
@@ -508,6 +572,7 @@ router.get("/booking-detail/:bookingId", async (req, res) => {
             payment,
             ticket,
             cancelRequest: latestCancelRequest,
+            passengers,
         });
     } catch (e) {
         console.error("Booking detail error:", e);
@@ -559,6 +624,18 @@ router.post("/booking/:bookingId/cancel", async (req, res) => {
             );
         }
         await conn.commit();
+
+        // Wire notification using the NotificationService
+        const io = req.app.get("io");
+        await NotificationService.createNotification({
+            type: "cancelled",
+            userId: req.session.user.id,
+            bookingId: req.params.bookingId,
+            message: `Pesanan pending dengan kode ${booking.booking_code} telah dibatalkan oleh pengguna.`,
+            payload: { bookingCode: booking.booking_code },
+            io
+        });
+
         res.redirect("/customer/my-bookings");
     } catch (e) {
         await conn.rollback();
@@ -613,6 +690,18 @@ router.post("/booking/:bookingId/cancel-request", async (req, res) => {
             req.body.reason || null,
         );
         await conn.commit();
+
+        // Wire notification using the NotificationService
+        const io = req.app.get("io");
+        await NotificationService.createNotification({
+            type: "cancelled",
+            userId: req.session.user.id,
+            bookingId: req.params.bookingId,
+            message: `Permintaan pembatalan baru diajukan untuk kode booking ${booking.booking_code}`,
+            payload: { bookingCode: booking.booking_code, reason: req.body.reason },
+            io
+        });
+
         res.redirect("/customer/booking-detail/" + req.params.bookingId);
     } catch (e) {
         await conn.rollback();
@@ -763,6 +852,18 @@ router.post("/booking/:bookingId/reschedule-request", async (req, res) => {
             );
 
             await conn.commit();
+
+            // Wire notification using the NotificationService
+            const io = req.app.get("io");
+            await NotificationService.createNotification({
+                type: "rescheduled",
+                userId: req.session.user.id,
+                bookingId,
+                message: `Permintaan reschedule baru diajukan untuk kode booking ${booking.booking_code} ke jadwal ID ${target_schedule_id}`,
+                payload: { bookingCode: booking.booking_code, targetScheduleId: target_schedule_id, targetSeatNumber: target_seat_number, reason },
+                io
+            });
+
             res.redirect("/customer/booking-detail/" + bookingId);
         } catch (e) {
             await conn.rollback();

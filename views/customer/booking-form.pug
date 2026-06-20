@@ -24,25 +24,25 @@ block content
   form(method="POST" action=`/customer/booking/${schedule.schedule_id}` style="margin-top:20px;")
     .card
       h3 Data Penumpang
-      .form-group
-        label Nama Lengkap Penumpang
-        input(type="text" name="passenger_name" value=user.username required)
       if schedule.pickup_point || schedule.dropoff_point
         .form-group
           label Informasi Titik Kumpul
           p(style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);")
             | Titik Jemput: <strong>#{schedule.pickup_point || '-'}</strong> <br>
             | Titik Turun: <strong>#{schedule.dropoff_point || '-'}</strong>
-    
+      
+      #passenger-forms-container
+        p.text-muted Silakan pilih minimal satu kursi di bawah untuk mengisi data penumpang.
+
     .card(style="margin-top:20px;")
       h3 Pilih Kursi
-      p Silakan pilih salah satu kursi yang tersedia di bawah ini.
+      p Silakan pilih satu atau lebih kursi yang tersedia di bawah ini.
       .seat-grid(style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; justify-content: center;")
         - for (var i = 1; i <= schedule.capacity; i++)
           - var seatNum = String(i)
           - var isBooked = bookedSeats.includes(seatNum)
           label(style=`padding: 15px 20px; border: 2px solid ${isBooked ? 'var(--border)' : 'var(--primary)'}; border-radius: 12px; cursor: ${isBooked ? 'not-allowed' : 'pointer'}; background: ${isBooked ? 'rgba(0,0,0,0.5)' : 'rgba(255, 75, 43, 0.1)'}; color: ${isBooked ? 'var(--text-muted)' : 'var(--text-main)'}; opacity: ${isBooked ? '0.5' : '1'}; text-align: center; font-family: 'Outfit', sans-serif; min-width: 80px; transition: all 0.3s;`)
-            input(type="radio" name="seat_number" value=seatNum disabled=isBooked required style="display:none;")
+            input(type="checkbox" name="seat_numbers" value=seatNum disabled=isBooked style="display:none;")
             | Kursi #{seatNum}
             if isBooked
               div(style="font-size: 11px; margin-top: 5px; font-weight: normal;") (Terisi)
@@ -53,23 +53,88 @@ block content
         button.btn.btn-primary(type="submit" style="width: 100%; font-size: 1.2em; padding: 18px;") Lanjut ke Pembayaran
 
   script.
-    const labels = document.querySelectorAll('.seat-grid label');
-    labels.forEach(label => {
+    const container = document.getElementById('passenger-forms-container');
+
+    function updatePassengerForms() {
+      const checkedInputs = document.querySelectorAll('.seat-grid input:checked');
+      
+      // Store current values before rebuilding
+      const currentValues = {};
+      container.querySelectorAll('.passenger-input-group').forEach(group => {
+        const seatNum = group.dataset.seat;
+        currentValues[seatNum] = {
+          name: group.querySelector('.passenger-name-input').value,
+          identity: group.querySelector('.passenger-identity-input').value,
+          phone: group.querySelector('.passenger-phone-input').value
+        };
+      });
+      
+      container.innerHTML = '';
+      
+      if (checkedInputs.length === 0) {
+        container.innerHTML = '<p class="text-muted">Silakan pilih minimal satu kursi di bawah untuk mengisi data penumpang.</p>';
+        return;
+      }
+      
+      checkedInputs.forEach((input, index) => {
+        const seatNum = input.value;
+        const oldVal = currentValues[seatNum] || { name: (index === 0 ? '#{user.username}' : ''), identity: '', phone: '' };
+        
+        const card = document.createElement('div');
+        card.className = 'passenger-input-group';
+        card.style.margin = '15px 0';
+        card.style.padding = '20px';
+        card.style.border = '1px solid var(--border)';
+        card.style.borderRadius = '10px';
+        card.style.background = 'rgba(255, 255, 255, 0.02)';
+        card.dataset.seat = seatNum;
+        
+        card.innerHTML = `
+          <h4 style="margin-top: 0; color: var(--primary); margin-bottom: 15px;">Data Penumpang - Kursi ${seatNum}</h4>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 8px;">Nama Lengkap</label>
+            <input type="text" class="passenger-name-input" name="passenger_name_${seatNum}" value="${oldVal.name}" required style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:#fff;">
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 8px;">Nomor Identitas (NIK/SIM/Paspor)</label>
+            <input type="text" class="passenger-identity-input" name="passenger_identity_${seatNum}" value="${oldVal.identity}" required style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:#fff;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="display: block; margin-bottom: 8px;">Nomor Telepon</label>
+            <input type="text" class="passenger-phone-input" name="passenger_phone_${seatNum}" value="${oldVal.phone}" required style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:#fff;">
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Set change listeners on checkboxes
+    document.querySelectorAll('.seat-grid label').forEach(label => {
       const input = label.querySelector('input');
       if (!input.disabled) {
-        label.addEventListener('click', () => {
-          labels.forEach(l => {
-            if (!l.querySelector('input').disabled) {
-              l.style.background = 'rgba(255, 75, 43, 0.1)';
-              l.style.color = 'var(--text-main)';
-            }
-          });
-          label.style.background = 'var(--primary-gradient)';
-          label.style.color = '#fff';
+        input.addEventListener('change', () => {
+          if (input.checked) {
+            label.style.background = 'var(--primary-gradient)';
+            label.style.color = '#fff';
+          } else {
+            label.style.background = 'rgba(255, 75, 43, 0.1)';
+            label.style.color = 'var(--text-main)';
+          }
+          updatePassengerForms();
         });
       }
     });
 
+    // Form submit validation
+    document.querySelector('form').addEventListener('submit', (e) => {
+      const checked = document.querySelectorAll('.seat-grid input:checked');
+      if (checked.length === 0) {
+        e.preventDefault();
+        alert('Silakan pilih minimal satu kursi!');
+      }
+    });
+
+    // Realtime seat checking
     setInterval(async () => {
       try {
         const resp = await fetch('/customer/api/seats/#{schedule.schedule_id}');
@@ -84,7 +149,10 @@ block content
 
           if (isNowBooked && !wasBooked) {
             input.disabled = true;
-            if (input.checked) input.checked = false;
+            if (input.checked) {
+              input.checked = false;
+              updatePassengerForms();
+            }
             label.style.border = '2px solid var(--border)';
             label.style.cursor = 'not-allowed';
             label.style.background = 'rgba(0,0,0,0.5)';
@@ -101,17 +169,7 @@ block content
             label.style.opacity = '1';
             const statusDiv = label.querySelector('div');
             if (statusDiv) { statusDiv.textContent = '(Tersedia)'; statusDiv.style.color = '#34d399'; }
-            label.addEventListener('click', () => {
-              document.querySelectorAll('.seat-grid label').forEach(l => {
-                if (!l.querySelector('input').disabled) {
-                  l.style.background = 'rgba(255, 75, 43, 0.1)';
-                  l.style.color = 'var(--text-main)';
-                }
-              });
-              label.style.background = 'var(--primary-gradient)';
-              label.style.color = '#fff';
-            });
           }
         });
-      } catch (e) { /* silent retry on next interval */ }
+      } catch (e) { /* silent retry */ }
     }, 15000);
