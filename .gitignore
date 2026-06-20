@@ -48,3 +48,5 @@ Homestead.yaml
 /design.md
 /roadmap.md
 /tasks.md
+.poolside/settings.local.yaml
+docs.md

@@ -9,7 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "migrate:status": "node scripts/migrate.js --status",
     "expire": "node scripts/expire-pending.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/booking.test.js"
   },
   "keywords": [],
   "author": "",

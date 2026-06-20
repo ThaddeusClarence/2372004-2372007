@@ -22,6 +22,14 @@ app.use(session({
     saveUninitialized: false
 }));
 
+// Local view helpers
+const { formatIDR } = require('./utils/format');
+app.use((req, res, next) => {
+    res.locals.formatIDR = formatIDR;
+    res.locals.sessionUser = req.session.user || null;
+    next();
+});
+
 // Routes
 const indexRouter = require('./routes/index');
 const adminRouter = require('./routes/admin');
@@ -45,7 +53,7 @@ io.on('connection', (socket) => {
 const ExpirationService = require('./services/expirationService');
 setInterval(async () => {
     try {
-        const count = await ExpirationService.expireStaleBookings();
+        const count = await ExpirationService.expireStaleBookings(io);
         if (count > 0) console.log(`[auto-expire] Expired ${count} stale pending booking(s).`);
     } catch (err) {
         console.error('[auto-expire] Error:', err.message);
