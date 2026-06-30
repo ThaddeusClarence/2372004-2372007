@@ -76,20 +76,43 @@ block content
 
         .demo-accounts-section(style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;")
           details
-            summary(style="cursor: pointer; color: var(--primary); font-size: 0.85em; font-weight: 600; outline: none; user-select: none;") 💡 Klik untuk Akun Uji Coba (Isi Otomatis)
-            .demo-grid(style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;")
+            summary(style="cursor: pointer; color: var(--primary); font-size: 0.85em; font-weight: 600; outline: none; user-select: none;") 💡 Klik untuk Daftar 10 Akun Uji Coba (Isi Otomatis)
+            
+            p(style="font-size: 0.75em; font-weight: 600; color: var(--primary); margin: 12px 0 6px 0;") 🛡️ Administrator
+            .demo-grid(style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;")
               .demo-btn(onclick="fillDemo('admin@travelgo.com', 'admin123')")
-                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") 🛡️ Admin Utama
-                p(style="font-size: 0.7em; color: var(--text-muted); margin: 0;") admin@travelgo.com / admin123
-              .demo-btn(onclick="fillDemo('budi@example.com', 'cust123')")
-                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") 👤 Customer (Budi)
-                p(style="font-size: 0.7em; color: var(--text-muted); margin: 0;") budi@example.com / cust123
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Admin Utama
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") admin@travelgo.com / admin123
               .demo-btn(onclick="fillDemo('admin2@travelgo.com', 'admin123')")
-                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") 🛡️ Admin 2 (CS)
-                p(style="font-size: 0.7em; color: var(--text-muted); margin: 0;") admin2@travelgo.com / admin123
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Admin 2 (CS)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") admin2@travelgo.com / admin123
+              .demo-btn(onclick="fillDemo('admin3@travelgo.com', 'admin123')")
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Admin 3 (Finance)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") admin3@travelgo.com / admin123
+
+            p(style="font-size: 0.75em; font-weight: 600; color: var(--primary); margin: 12px 0 6px 0;") 👤 Pelanggan
+            .demo-grid(style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;")
+              .demo-btn(onclick="fillDemo('budi@example.com', 'cust123')")
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Budi (Lunas)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") budi@example.com / cust123
               .demo-btn(onclick="fillDemo('ani@example.com', 'cust123')")
-                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") 👤 Customer (Ani)
-                p(style="font-size: 0.7em; color: var(--text-muted); margin: 0;") ani@example.com / cust123
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Ani (Pending Bayar)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") ani@example.com / cust123
+              .demo-btn(onclick="fillDemo('candra@example.com', 'cust123')")
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Candra (Dibatalkan)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") candra@example.com / cust123
+              .demo-btn(onclick="fillDemo('dewi@example.com', 'cust123')")
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Dewi (Req Pembatalan)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") dewi@example.com / cust123
+              .demo-btn(onclick="fillDemo('eko@example.com', 'cust123')")
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Eko (Req Reschedule)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") eko@example.com / cust123
+              .demo-btn(onclick="fillDemo('farida@example.com', 'cust123')")
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Farida (Normal)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") farida@example.com / cust123
+              .demo-btn(onclick="fillDemo('gita@example.com', 'cust123')")
+                p(style="font-size: 0.75em; font-weight: 700; color: var(--text); margin: 0;") Gita (Normal)
+                p(style="font-size: 0.65em; color: var(--text-muted); margin: 0;") gita@example.com / cust123
 
         script.
           function fillDemo(email, password) {
