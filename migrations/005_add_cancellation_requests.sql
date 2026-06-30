@@ -2,8 +2,35 @@
 -- Requires admin approval before booking status changes
 -- Also adds hidden_at column for soft-delete history feature
 
--- Add hidden_at column for soft-delete (hide history instead of delete)
-ALTER TABLE bookings ADD COLUMN IF NOT EXISTS hidden_at DATETIME NULL AFTER hold_expired_at;
+-- Add hidden_at column for soft-delete (hide history instead of delete).
+-- ADD COLUMN IF NOT EXISTS is not supported before MySQL 8.0.20, so we use a stored
+-- procedure that checks INFORMATION_SCHEMA.COLUMNS before issuing the ALTER TABLE.
+
+DROP PROCEDURE IF EXISTS _migrate_005_add_col;
+
+CREATE PROCEDURE _migrate_005_add_col(
+    IN p_table  VARCHAR(64),
+    IN p_column VARCHAR(64),
+    IN p_ddl    TEXT
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME   = p_table
+          AND COLUMN_NAME  = p_column
+    ) THEN
+        SET @_sql = p_ddl;
+        PREPARE _stmt FROM @_sql;
+        EXECUTE _stmt;
+        DEALLOCATE PREPARE _stmt;
+    END IF;
+END;
+
+CALL _migrate_005_add_col('bookings', 'hidden_at', 'ALTER TABLE bookings ADD COLUMN hidden_at DATETIME NULL AFTER hold_expired_at');
+
+DROP PROCEDURE IF EXISTS _migrate_005_add_col;
 
 CREATE TABLE IF NOT EXISTS cancellation_requests (
     request_id INT NOT NULL AUTO_INCREMENT,
