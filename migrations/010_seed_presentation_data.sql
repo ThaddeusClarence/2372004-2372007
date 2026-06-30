@@ -1,3 +1,5 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- Seed 8 additional testing accounts (mix of admins and customers)
 -- Passwords are bcrypt hashes: admin123 (for admins) and cust123 (for customers)
 
@@ -17,6 +19,12 @@ ON DUPLICATE KEY UPDATE
     updated_at = NOW();
 
 -- Clear old seeded dummy bookings to ensure re-runnable execution
+DELETE FROM reschedule_requests WHERE booking_id IN (SELECT booking_id FROM bookings WHERE booking_code LIKE 'BKSEED%');
+DELETE FROM cancellation_requests WHERE booking_id IN (SELECT booking_id FROM bookings WHERE booking_code LIKE 'BKSEED%');
+DELETE FROM booking_seats WHERE booking_id IN (SELECT booking_id FROM bookings WHERE booking_code LIKE 'BKSEED%');
+DELETE FROM passengers WHERE booking_id IN (SELECT booking_id FROM bookings WHERE booking_code LIKE 'BKSEED%');
+DELETE FROM payments WHERE gateway_transaction_id LIKE 'TXSEED%';
+DELETE FROM e_tickets WHERE ticket_code LIKE 'TKSEED%';
 DELETE FROM bookings WHERE booking_code LIKE 'BKSEED%';
 
 -- Fetch user IDs into variables
@@ -150,3 +158,5 @@ VALUES
     (@admin_id, 'payment_confirmed', @dewi_id, @booking_id_4, 'Pembayaran untuk pemesanan BKSEED04 telah dikonfirmasi.', NOW() - INTERVAL 11 HOUR),
     (@admin_id, 'cancelled', @dewi_id, @booking_id_4, 'Permintaan pembatalan diajukan oleh Dewi Lestari (BKSEED04).', NOW() - INTERVAL 2 HOUR),
     (@admin_id, 'rescheduled', @eko_id, @booking_id_5, 'Permintaan reschedule diajukan oleh Eko Prasetyo (BKSEED05).', NOW() - INTERVAL 3 HOUR);
+
+SET FOREIGN_KEY_CHECKS = 1;

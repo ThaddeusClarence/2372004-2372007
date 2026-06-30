@@ -1,3 +1,5 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- Mark placeholder schedules as unavailable to hide them from active search results
 UPDATE schedules SET status = 'unavailable' WHERE route_id IN (8, 9) OR schedule_id = 9;
 
@@ -71,3 +73,5 @@ VALUES
     (23, 5, 5, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 170 HOUR), DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 172 HOUR), 110000.00, 'available', 'Stasiun Gubeng', 'Alun-Alun Malang'),
     -- Jakarta -> Bandung (Bus, 40 seats)
     (24, 1, 1, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 172 HOUR), DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 175 HOUR), 150000.00, 'available', 'Terminal Kampung Rambutan', 'Terminal Leuwipanjang');
+
+SET FOREIGN_KEY_CHECKS = 1;
