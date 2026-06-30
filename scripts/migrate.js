@@ -76,7 +76,11 @@ async function run() {
         return;
     }
 
-    await ensureDatabase();
+    try {
+        await ensureDatabase();
+    } catch (err) {
+        console.warn(`Warning: Could not ensure database existence: ${err.message}. Proceeding to connect directly...`);
+    }
     const connection = await createConnection(true);
 
     try {
