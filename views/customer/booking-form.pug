@@ -43,17 +43,26 @@ block content
     .card(style="margin-top:20px;")
       h3 Pilih Kursi
       p Silakan pilih satu atau lebih kursi yang tersedia di bawah ini.
-      .seat-grid(style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; justify-content: center;")
-        - for (var i = 1; i <= schedule.capacity; i++)
-          - var seatNum = String(i)
-          - var isBooked = bookedSeats.includes(seatNum)
-          label(style=`padding: 15px 20px; border: 2px solid ${isBooked ? 'var(--border)' : 'var(--primary)'}; border-radius: 12px; cursor: ${isBooked ? 'not-allowed' : 'pointer'}; background: ${isBooked ? 'rgba(0,0,0,0.5)' : 'rgba(255, 75, 43, 0.1)'}; color: ${isBooked ? 'var(--text-muted)' : 'var(--text-main)'}; opacity: ${isBooked ? '0.5' : '1'}; text-align: center; font-family: 'Outfit', sans-serif; min-width: 80px; transition: all 0.3s;`)
-            input(type="checkbox" name="seat_numbers" value=seatNum disabled=isBooked style="display:none;")
-            | Kursi #{seatNum}
-            if isBooked
-              div(style="font-size: 11px; margin-top: 5px; font-weight: normal;") (Terisi)
-            else
-              div(style="font-size: 11px; margin-top: 5px; font-weight: normal; color: #34d399;") (Tersedia)
+      .seat-grid(style="margin-top: 15px;")
+        - var seatsPerRow = 4
+        - for (var row = 0; row < Math.ceil(schedule.capacity / seatsPerRow); row++)
+          - for (var col = 0; col < seatsPerRow; col++)
+            - var i = row * seatsPerRow + col + 1
+            - if (i > schedule.capacity) continue
+            - var seatNum = String(i)
+            - var isBooked = bookedSeats.includes(seatNum)
+            - var isAisle = (col === 1 || col === 2)
+            if isAisle && col === 1 && i <= schedule.capacity
+              .seat-aisle
+            label(class=`seat-label ${isBooked ? 'seat-booked' : ''}`)
+              input(type="checkbox" name="seat_numbers" value=seatNum disabled=isBooked style="display:none;")
+              | #{seatNum}
+              if isBooked
+                .seat-status Terisi
+              else
+                .seat-status Tersedia
+            if isAisle && col === 2 && i <= schedule.capacity
+              .seat-aisle
       
       div(style="margin-top:40px;")
         button.btn.btn-primary(type="submit" style="width: 100%; font-size: 1.2em; padding: 18px;") Lanjut ke Pembayaran
@@ -115,17 +124,11 @@ block content
     }
 
     // Set change listeners on checkboxes
-    document.querySelectorAll('.seat-grid label').forEach(label => {
+    document.querySelectorAll('.seat-grid .seat-label').forEach(label => {
       const input = label.querySelector('input');
       if (!input.disabled) {
         input.addEventListener('change', () => {
-          if (input.checked) {
-            label.style.background = 'var(--primary-gradient)';
-            label.style.color = '#fff';
-          } else {
-            label.style.background = 'rgba(255, 75, 43, 0.1)';
-            label.style.color = 'var(--text-main)';
-          }
+          label.classList.toggle('seat-selected', input.checked);
           updatePassengerForms();
         });
       }
@@ -147,7 +150,7 @@ block content
         const data = await resp.json();
         if (data.error) return;
 
-        document.querySelectorAll('.seat-grid label').forEach(label => {
+        document.querySelectorAll('.seat-grid .seat-label').forEach(label => {
           const input = label.querySelector('input');
           const seatNum = input.value;
           const isNowBooked = data.bookedSeats.includes(seatNum);
@@ -155,26 +158,17 @@ block content
 
           if (isNowBooked && !wasBooked) {
             input.disabled = true;
-            if (input.checked) {
-              input.checked = false;
-              updatePassengerForms();
-            }
-            label.style.border = '2px solid var(--border)';
-            label.style.cursor = 'not-allowed';
-            label.style.background = 'rgba(0,0,0,0.5)';
-            label.style.color = 'var(--text-muted)';
-            label.style.opacity = '0.5';
-            const statusDiv = label.querySelector('div');
-            if (statusDiv) statusDiv.textContent = '(Terisi)';
+            input.checked = false;
+            label.classList.remove('seat-selected');
+            label.classList.add('seat-booked');
+            updatePassengerForms();
+            const statusDiv = label.querySelector('.seat-status');
+            if (statusDiv) statusDiv.textContent = 'Terisi';
           } else if (!isNowBooked && wasBooked) {
             input.disabled = false;
-            label.style.border = '2px solid var(--primary)';
-            label.style.cursor = 'pointer';
-            label.style.background = 'rgba(255, 75, 43, 0.1)';
-            label.style.color = 'var(--text-main)';
-            label.style.opacity = '1';
-            const statusDiv = label.querySelector('div');
-            if (statusDiv) { statusDiv.textContent = '(Tersedia)'; statusDiv.style.color = '#34d399'; }
+            label.classList.remove('seat-booked');
+            const statusDiv = label.querySelector('.seat-status');
+            if (statusDiv) { statusDiv.textContent = 'Tersedia'; }
           }
         });
       } catch (e) { /* silent retry */ }

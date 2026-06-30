@@ -1,19 +1,15 @@
-//- CODE-CITE:
-//-   Title: Home Template
-//-   Type: ai
-//-   Value: Antigravity Gemini
-//-   Notes: UI template structure and styling helper.
-//-   Lines Range: 393
 extends layout
 
 block content
   // =========================
-  // HERO SECTION
+  // HERO
   // =========================
   section.hero-modern
-    .hero-overlay
     .hero-content
-      span.hero-badge ✨ Travel Premium Indonesia
+      span.hero-badge
+        svg.icon-svg(width="14" height="14" viewBox="0 0 24 24" aria-hidden="true")
+          polyline(points="20 6 9 17 4 12")
+        | Travel Premium Indonesia
 
       h1
         | Jelajahi Nusantara
@@ -25,77 +21,71 @@ block content
         | jadwal tepat waktu, dan sistem reservasi online yang cepat serta praktis.
 
       .action-buttons
-        a.btn.btn-primary.btn-large(href="/login")
-          | Mulai Perjalanan
-
-        a.btn.btn-secondary.btn-large(href="#features")
-          | Pelajari Lebih Lanjut
+        a.btn.btn-primary.btn-large(href="/login") Mulai Perjalanan
+        a.btn.btn-secondary.btn-large(href="#features") Pelajari Lebih Lanjut
 
       .hero-stats
         .stat-box
           h3 10K+
           p Penumpang
-
         .stat-box
           h3 120+
           p Armada
-
         .stat-box
           h3 24/7
           p Customer Support
 
   // =========================
-  // FEATURES SECTION
+  // FEATURES
   // =========================
   section#features.features-section
     .section-header
       h2 Kenapa Memilih TravelGo?
-      p
-        | Kami memberikan pengalaman perjalanan terbaik dengan layanan premium
-        | dan teknologi modern.
+      p Kami memberikan pengalaman perjalanan terbaik dengan layanan premium dan teknologi modern.
 
     .features-grid
-
       .feature-card
-        .feature-icon ⏱️
+        .feature-icon
+          svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
         h3 Tepat Waktu
-        p
-          | Keberangkatan selalu sesuai jadwal tanpa harus menunggu lama
-          | atau ngetem sembarangan.
+        p Keberangkatan selalu sesuai jadwal tanpa harus menunggu lama atau ngetem sembarangan.
 
       .feature-card
-        .feature-icon 🛋️
+        .feature-icon
+          svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4")
         h3 Kursi Premium
-        p
-          | Nikmati kursi ergonomis dengan ruang kaki luas untuk kenyamanan
-          | maksimal selama perjalanan.
+        p Nikmati kursi ergonomis dengan ruang kaki luas untuk kenyamanan maksimal selama perjalanan.
 
       .feature-card
-        .feature-icon 📱
+        .feature-icon
+          svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z")
         h3 Pilih Kursi Bebas
-        p
-          | Tentukan posisi duduk favorit Anda secara real-time saat melakukan
-          | pemesanan online.
+        p Tentukan posisi duduk favorit Anda secara real-time saat melakukan pemesanan online.
 
       .feature-card
-        .feature-icon 🔒
+        .feature-icon
+          svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z")
         h3 Aman & Terpercaya
-        p
-          | Driver profesional dan armada yang selalu rutin dicek demi keamanan
-          | perjalanan Anda.
+        p Driver profesional dan armada yang selalu rutin dicek demi keamanan perjalanan Anda.
 
       .feature-card
-        .feature-icon 💳
+        .feature-icon
+          svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z")
         h3 Pembayaran Mudah
-        p
-          | Mendukung berbagai metode pembayaran digital dengan proses cepat
-          | dan aman.
+        p Mendukung berbagai metode pembayaran digital dengan proses cepat dan aman.
 
       .feature-card
-        .feature-icon 🌍
+        .feature-icon
+          svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
         h3 Banyak Pilihan Rute
-        p
-          | Tersedia berbagai rute populer antar kota dengan jadwal yang fleksibel.
+        p Tersedia berbagai rute populer antar kota dengan jadwal yang fleksibel.
 
   // =========================
   // POPULAR ROUTES
@@ -106,9 +96,8 @@ block content
       p Pilihan rute favorit pelanggan TravelGo setiap harinya.
 
     .routes-grid
-
       .route-card
-        .route-image(style="background-image: url('https://images.unsplash.com/photo-1514565131-fce0801e5785?q=80&w=1200&auto=format&fit=crop');")
+        .route-image(style="background: linear-gradient(135deg, #1a0a0e, #2d1418);")
         .route-overlay
         .route-info
           h3 Jakarta → Bandung
@@ -116,7 +105,7 @@ block content
           span.price Mulai dari Rp 150.000
 
       .route-card
-        .route-image(style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop');")
+        .route-image(style="background: linear-gradient(135deg, #0f111a, #1a1428);")
         .route-overlay
         .route-info
           h3 Surabaya → Malang
@@ -124,7 +113,7 @@ block content
           span.price Mulai dari Rp 100.000
 
       .route-card
-        .route-image(style="background-image: url('https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1200&auto=format&fit=crop');")
+        .route-image(style="background: linear-gradient(135deg, #1a0a0e, #2d1418);")
         .route-overlay
         .route-info
           h3 Semarang → Yogyakarta
@@ -132,360 +121,10 @@ block content
           span.price Mulai dari Rp 120.000
 
   // =========================
-  // CTA SECTION
+  // CTA
   // =========================
   section.cta-section
     .cta-card
       h2 Siap Untuk Perjalanan Berikutnya?
-      p
-        | Bergabunglah bersama ribuan penumpang lainnya yang mempercayakan
-        | perjalanannya kepada TravelGo.
-
-      a.btn.btn-primary.btn-large(href="/login")
-        | Daftar / Masuk Sekarang
-
-  // =========================
-  // CUSTOM STYLE
-  // =========================
-  style.
-    main {
-      padding: 0 !important;
-      max-width: none !important;
-      margin: 0 !important;
-      width: 100% !important;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f5f7fb;
-      color: #222;
-    }
-
-    section {
-      padding: 90px 8%;
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-
-    .section-header h2 {
-      font-size: 2.5rem;
-      margin-bottom: 15px;
-      color: #111827;
-    }
-
-    .section-header p {
-      color: #6b7280;
-      max-width: 700px;
-      margin: auto;
-      line-height: 1.8;
-    }
-
-    /* HERO */
-    .hero-modern {
-      position: relative;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      overflow: hidden;
-      background:
-        linear-gradient(rgba(0,0,0,.65), rgba(0,0,0,.65)),
-        url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop');
-      background-size: cover;
-      background-position: center;
-      color: white;
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      max-width: 850px;
-    }
-
-    .hero-badge {
-      display: inline-block;
-      padding: 10px 18px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.2);
-      margin-bottom: 25px;
-      font-size: .95rem;
-      backdrop-filter: blur(10px);
-    }
-
-    .hero-content h1 {
-      font-size: 4rem;
-      line-height: 1.2;
-      margin-bottom: 25px;
-      font-weight: 700;
-    }
-
-    .highlight {
-      color: #60a5fa;
-    }
-
-    .hero-subtitle {
-      font-size: 1.15rem;
-      line-height: 1.9;
-      max-width: 700px;
-      margin: auto;
-      color: rgba(255,255,255,.88);
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      margin-top: 40px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      text-decoration: none;
-      padding: 15px 28px;
-      border-radius: 14px;
-      font-weight: 600;
-      transition: .3s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn-large {
-      font-size: 1rem;
-    }
-
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-      box-shadow: 0 10px 25px rgba(37,99,235,.35);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      background: #1d4ed8;
-    }
-
-    .btn-secondary {
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.25);
-      color: white;
-      backdrop-filter: blur(10px);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255,255,255,.2);
-    }
-
-    .hero-stats {
-      margin-top: 70px;
-      display: flex;
-      justify-content: center;
-      gap: 25px;
-      flex-wrap: wrap;
-    }
-
-    .stat-box {
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.15);
-      padding: 22px 30px;
-      border-radius: 18px;
-      min-width: 160px;
-      backdrop-filter: blur(12px);
-    }
-
-    .stat-box h3 {
-      font-size: 2rem;
-      margin-bottom: 8px;
-    }
-
-    .stat-box p {
-      color: rgba(255,255,255,.8);
-    }
-
-    /* FEATURES */
-    .features-section {
-      background: white;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 28px;
-    }
-
-    .feature-card {
-      background: #fff;
-      padding: 35px 28px;
-      border-radius: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.06);
-      transition: .3s ease;
-      border: 1px solid #eef2f7;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-10px);
-    }
-
-    .feature-icon {
-      width: 70px;
-      height: 70px;
-      border-radius: 18px;
-      background: #eff6ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      margin-bottom: 22px;
-    }
-
-    .feature-card h3 {
-      margin-bottom: 15px;
-      color: #111827;
-    }
-
-    .feature-card p {
-      color: #6b7280;
-      line-height: 1.8;
-    }
-
-    /* ROUTES */
-    .routes-section {
-      background: #f5f7fb;
-    }
-
-    .routes-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 28px;
-    }
-
-    .route-card {
-      overflow: hidden;
-      border-radius: 24px;
-      position: relative;
-      min-height: 420px;
-      box-shadow: 0 15px 35px rgba(0,0,0,.08);
-      transition: .35s ease;
-    }
-
-    .route-card:hover {
-      transform: translateY(-10px);
-    }
-
-    .route-image {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      transition: transform .5s ease;
-    }
-
-    .route-card:hover .route-image {
-      transform: scale(1.08);
-    }
-
-    .route-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,.15));
-    }
-
-    .route-info {
-      position: absolute;
-      bottom: 30px;
-      left: 30px;
-      z-index: 2;
-      color: white;
-    }
-
-    .route-info h3 {
-      font-size: 1.7rem;
-      margin-bottom: 10px;
-    }
-
-    .route-info p {
-      margin-bottom: 10px;
-      color: rgba(255,255,255,.85);
-    }
-
-    .price {
-      display: inline-block;
-      background: rgba(255,255,255,.15);
-      padding: 10px 16px;
-      border-radius: 999px;
-      font-size: .95rem;
-      backdrop-filter: blur(10px);
-    }
-
-    /* CTA */
-    .cta-section {
-      background: linear-gradient(135deg, #1d4ed8, #2563eb);
-    }
-
-    .cta-card {
-      text-align: center;
-      color: white;
-      max-width: 850px;
-      margin: auto;
-      padding: 70px 40px;
-      border-radius: 30px;
-      background: rgba(255,255,255,.08);
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255,255,255,.15);
-    }
-
-    .cta-card h2 {
-      font-size: 2.7rem;
-      margin-bottom: 20px;
-    }
-
-    .cta-card p {
-      line-height: 1.9;
-      color: rgba(255,255,255,.88);
-      margin-bottom: 35px;
-    }
-
-    /* RESPONSIVE */
-    @media(max-width: 768px) {
-
-      section {
-        padding: 70px 6%;
-      }
-
-      .hero-content h1 {
-        font-size: 2.7rem;
-      }
-
-      .hero-subtitle {
-        font-size: 1rem;
-      }
-
-      .section-header h2 {
-        font-size: 2rem;
-      }
-
-      .cta-card h2 {
-        font-size: 2rem;
-      }
-
-      .hero-stats {
-        gap: 15px;
-      }
-
-      .stat-box {
-        min-width: 130px;
-        padding: 18px;
-      }
-    }
+      p Bergabunglah bersama ribuan penumpang lainnya yang mempercayakan perjalanannya kepada TravelGo.
+      a.btn.btn-primary.btn-large(href="/login") Daftar / Masuk Sekarang

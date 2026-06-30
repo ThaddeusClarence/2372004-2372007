@@ -16,9 +16,9 @@ block content
         .card(style="display: flex; justify-content: space-between; align-items: center; padding: 20px;")
           div
             h3(style="margin-bottom: 5px;") #{new Date(s.departure_time).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} - #{s.arrival_estimate ? new Date(s.arrival_estimate).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '?'}
-            p(style="color: #666; margin-bottom: 5px;") 🚘 #{s.plate_number} (#{s.vehicle_type})
+            p(style="color: var(--text-muted); margin-bottom: 5px;") #{s.plate_number} (#{s.vehicle_type})
             if s.pickup_point
-              p(style="font-size: 0.9em; color: #888;") Jemput: #{s.pickup_point} | Turun: #{s.dropoff_point || '-'}
+              p(style="font-size: 0.9em; color: var(--text-muted);") Jemput: #{s.pickup_point} | Turun: #{s.dropoff_point || '-'}
           div(style="text-align: right;")
             h3(style="color: var(--primary); margin-bottom: 10px;") Rp #{Number(s.price).toLocaleString('id-ID')}
             a.btn.btn-primary(href=`/customer/booking/${s.schedule_id}`) Pilih Kursi

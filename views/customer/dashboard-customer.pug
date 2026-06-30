@@ -39,9 +39,9 @@ block content
         .card(style="display: flex; justify-content: space-between; align-items: center; padding: 20px; flex-wrap: wrap; gap: 15px;")
           div
             h3(style="margin-bottom: 5px;") #{s.origin_city} &rarr; #{s.destination_city}
-            p(style="margin-bottom: 5px;") 📅 #{new Date(s.departure_time).toLocaleDateString('id-ID', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}
-            p(style="margin-bottom: 5px;") ⏰ #{new Date(s.departure_time).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} - #{s.arrival_estimate ? new Date(s.arrival_estimate).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '?'}
-            p(style="color: #666; margin-bottom: 5px;") 🚘 #{s.plate_number} (#{s.vehicle_type})
+            p(style="margin-bottom: 5px;") #{new Date(s.departure_time).toLocaleDateString('id-ID', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}
+            p(style="margin-bottom: 5px;") #{new Date(s.departure_time).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} - #{s.arrival_estimate ? new Date(s.arrival_estimate).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '?'}
+            p(style="color: var(--text-muted); margin-bottom: 5px;") #{s.plate_number} (#{s.vehicle_type})
             if s.pickup_point
               p(style="font-size: 0.9em; color: #888;") Jemput: #{s.pickup_point} | Turun: #{s.dropoff_point || '-'}
           div(style="text-align: right;")

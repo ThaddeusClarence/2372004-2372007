@@ -1,26 +1,70 @@
-//- CODE-CITE:
-//-   Title: Register Template
-//-   Type: ai
-//-   Value: Antigravity Gemini
-//-   Notes: UI template structure and styling helper.
-//-   Lines Range: 19
 extends layout
 
 block content
-  .glass-card.form-container
-    h2 Daftar Akun
-    if error
-      p(style="color: #ef4444; text-align: center; margin-bottom: 1rem; font-size: 0.9rem;") #{error}
-    form(action="/register" method="POST")
-      .form-group
-        label(for="email") Email
-        input#email(type="email" name="email" placeholder="Masukkan email Anda" required)
-      .form-group
-        label(for="username") Username
-        input#username(type="text" name="username" placeholder="Masukkan username Anda" required)
-      .form-group
-        label(for="password") Password
-        input#password(type="password" name="password" placeholder="Buat password" required)
-      button.btn.btn-large(type="submit" style="width: 100%") Daftar Sekarang
-    p(style="text-align: center; margin-top: 1.5rem; color: var(--text-muted);") Sudah punya akun? 
-      a(href="/login" style="color: var(--primary); font-weight: 600; text-decoration: none;") Masuk di sini
+  section.auth-section
+    .auth-container
+      .auth-info
+        .brand-badge
+          svg.icon-svg(width="16" height="16" viewBox="0 0 24 24" aria-hidden="true")
+            path(d="M5 12l5 5l10-10")
+          span TravelGo Premium
+        h1
+          | Mulai Perjalanan
+          br
+          span Anda!
+        p
+          | Daftar akun baru untuk menikmati kemudahan pemesanan tiket
+          | travel, pilih kursi favorit, dan fitur eksklusif lainnya.
+        .auth-features
+          .feature-item
+            svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20c0-3.314 2.686-6 6-6")
+            p Daftar gratis, tanpa biaya
+          .feature-item
+            svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
+            p Proses pemesanan cepat
+          .feature-item
+            svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z")
+            p Data aman & terenkripsi
+
+      .auth-form-card
+        h2 Daftar Akun Baru
+        p.form-subtitle
+          | Buat akun untuk mulai memesan tiket travel.
+
+        if error
+          .alert-error #{error}
+
+        form(action="/register" method="POST")
+          .form-group
+            label(for="email") Email
+            .input-box
+              span.input-icon
+                svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                  path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z")
+              input#email(type="email" name="email" placeholder="Masukkan email Anda" required)
+
+          .form-group
+            label(for="username") Username
+            .input-box
+              span.input-icon
+                svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                  path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z")
+              input#username(type="text" name="username" placeholder="Buat username" required)
+
+          .form-group
+            label(for="password") Password
+            .input-box
+              span.input-icon
+                svg(aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                  path(stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z")
+              input#password(type="password" name="password" placeholder="Buat password" required)
+
+          button.btn.btn-primary.btn-large(type="submit") Daftar Sekarang
+
+        .bottom-text
+          p
+            | Sudah punya akun?
+            a(href="/login") Masuk di sini

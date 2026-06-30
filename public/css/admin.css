@@ -1,27 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-    --bg: #0a0a0a;
+    --bg: #08080c;
     --surface: rgba(255,255,255,0.04);
     --surface-hover: rgba(255,255,255,0.08);
     --border: rgba(255,255,255,0.08);
+    --border-highlight: rgba(255,255,255,0.15);
     --text: #f1f5f9;
     --text-muted: #94a3b8;
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
+    --primary: oklch(55% 0.18 30);
+    --primary-hover: oklch(48% 0.2 28);
     --danger: #ef4444;
     --success: #22c55e;
     --warning: #f59e0b;
     --radius: 12px;
+    --radius-sm: 8px;
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    line-height: 1.6;
 }
 
 /* ===== NAVBAR ===== */
@@ -29,8 +34,8 @@ body {
     position: fixed;
     top: 0; left: 0; right: 0;
     height: 64px;
-    background: rgba(10,10,10,0.8);
-    backdrop-filter: blur(20px);
+    background: rgba(8,8,12,0.85);
+    backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -39,9 +44,10 @@ body {
     z-index: 100;
 }
 .navbar h1 {
+    font-family: var(--font-display);
     font-size: 1.2rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: linear-gradient(135deg, var(--primary), oklch(55% 0.15 15));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -60,8 +66,8 @@ body {
     position: fixed;
     top: 64px; left: 0; bottom: 0;
     width: 240px;
-    background: rgba(10,10,10,0.6);
-    backdrop-filter: blur(20px);
+    background: rgba(8,8,12,0.6);
+    backdrop-filter: blur(16px);
     border-right: 1px solid var(--border);
     padding: 1.5rem 0;
     z-index: 90;
@@ -101,6 +107,7 @@ body {
     margin-bottom: 2rem;
 }
 .page-header h2 {
+    font-family: var(--font-display);
     font-size: 1.5rem;
     font-weight: 700;
 }
@@ -121,16 +128,17 @@ body {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
 }
 .stat-card:hover {
     background: var(--surface-hover);
     transform: translateY(-2px);
 }
 .stat-card .stat-value {
+    font-family: var(--font-display);
     font-size: 2rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: linear-gradient(135deg, var(--primary), oklch(55% 0.15 15));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -147,9 +155,10 @@ body {
     border-radius: var(--radius);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .card h3 {
+    font-family: var(--font-display);
     font-size: 1.1rem;
     margin-bottom: 1rem;
     font-weight: 600;
@@ -172,6 +181,7 @@ thead th {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--border);
+    font-family: var(--font-display);
 }
 tbody td {
     padding: 0.75rem 1rem;
@@ -180,7 +190,7 @@ tbody td {
     vertical-align: middle;
 }
 tbody tr {
-    transition: background 0.2s;
+    transition: background 0.15s;
 }
 tbody tr:hover {
     background: var(--surface-hover);
@@ -191,13 +201,13 @@ tbody tr:hover {
     display: inline-block;
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.2s ease;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-display);
     color: #fff;
 }
 .btn-primary {
@@ -234,7 +244,7 @@ tbody tr:hover {
     border: 1px solid var(--border);
     color: var(--text-muted);
     padding: 0.4rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     text-decoration: none;
     font-size: 0.85rem;
     transition: all 0.2s;
@@ -262,17 +272,18 @@ tbody tr:hover {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    font-family: var(--font-display);
 }
 .form-group input,
 .form-group select,
 .form-group textarea {
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 0.6rem 0.8rem;
     color: var(--text);
     font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     transition: border-color 0.2s;
 }
 .form-group input:focus,
@@ -280,6 +291,7 @@ tbody tr:hover {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(224, 69, 69, 0.1);
 }
 
 /* ===== STATUS BADGES ===== */
@@ -289,22 +301,27 @@ tbody tr:hover {
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
+    font-family: var(--font-display);
 }
 .badge-pending {
     background: rgba(245,158,11,0.15);
     color: var(--warning);
+    border: 1px solid rgba(245,158,11,0.25);
 }
 .badge-confirmed {
     background: rgba(34,197,94,0.15);
     color: var(--success);
+    border: 1px solid rgba(34,197,94,0.25);
 }
 .badge-canceled {
     background: rgba(239,68,68,0.15);
     color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.25);
 }
 .badge-refunded {
     background: rgba(99,102,241,0.15);
-    color: var(--primary);
+    color: #818cf8;
+    border: 1px solid rgba(99,102,241,0.25);
 }
 
 /* ===== ACTIONS ===== */
@@ -326,7 +343,7 @@ tbody tr:hover {
 .ticket-card img {
     max-width: 250px;
     margin: 1rem auto;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
 }
 .ticket-info {
     text-align: left;
@@ -347,7 +364,7 @@ tbody tr:hover {
 .notif-item {
     padding: 1rem;
     border-bottom: 1px solid var(--border);
-    transition: background 0.2s;
+    transition: background 0.15s;
 }
 .notif-item:last-child {
     border-bottom: none;
@@ -371,6 +388,7 @@ tbody tr:hover {
     color: var(--text-muted);
 }
 .empty-state h3 {
+    font-family: var(--font-display);
     font-size: 1.2rem;
     color: var(--text);
     margin-bottom: 0.5rem;
