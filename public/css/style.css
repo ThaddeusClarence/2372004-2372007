@@ -981,6 +981,193 @@ table tbody tr:hover td {
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+/* ===== CHANGE PASSWORD ===== */
+.change-password-section {
+    max-width: 560px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.change-password-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.change-password-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.2rem;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px oklch(55% 0.18 30 / 0.25);
+}
+
+.change-password-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #ffffff;
+}
+
+.change-password-header h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.5px;
+}
+
+.change-password-header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.change-password-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.change-password-card .form-group {
+    margin-bottom: 1.2rem;
+}
+
+.change-password-card .form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+}
+
+.change-password-card .input-box {
+    position: relative;
+}
+
+.change-password-card .input-box .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.change-password-card .input-box input {
+    width: 100%;
+    padding: 0.85rem 1rem 0.85rem 2.8rem;
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.change-password-card .input-box input:focus {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.5);
+    outline: none;
+    box-shadow: 0 0 0 3px oklch(55% 0.18 30 / 0.1);
+}
+
+.change-password-card .input-box input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.change-password-card .alert-success {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #86efac;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.change-password-card .alert-error {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.change-password-card .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.password-requirements {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.password-requirements .req-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+
+.password-requirements ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.password-requirements ul li {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.15rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+}
+
+.password-requirements ul li::before {
+    content: '•';
+    position: absolute;
+    left: 0.3rem;
+    color: var(--primary);
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.back-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.back-link a:hover {
+    color: var(--primary);
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 920px) {
     .auth-container {

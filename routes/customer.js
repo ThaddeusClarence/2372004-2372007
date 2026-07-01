@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/pool");
+const bcrypt = require("bcrypt");
 const bookingCodeService = require("../services/bookingCodeService");
 const seatAvailability = require("../services/seatAvailability");
 const paymentService = require("../services/paymentService");
@@ -909,6 +910,115 @@ router.post("/booking/:bookingId/reschedule-request", async (req, res) => {
         res.send(
             "<script>alert('Gagal mengajukan reschedule.'); window.location.href='/customer/my-bookings';</script>",
         );
+    }
+});
+
+// Change Password - Form
+router.get("/change-password", (req, res) => {
+    res.render("customer/change-password", {
+        title: "Ganti Password",
+        user: req.session.user,
+        error: null,
+        success: null,
+    });
+});
+
+// Change Password - Process
+router.post("/change-password", async (req, res) => {
+    try {
+        const { current_password, new_password, confirm_password } = req.body;
+        const userId = req.session.user.id;
+
+        // Validate all fields are present
+        if (!current_password || !new_password || !confirm_password) {
+            return res.render("customer/change-password", {
+                title: "Ganti Password",
+                user: req.session.user,
+                error: "Semua field harus diisi.",
+                success: null,
+            });
+        }
+
+        // Validate new password length
+        if (new_password.length < 6) {
+            return res.render("customer/change-password", {
+                title: "Ganti Password",
+                user: req.session.user,
+                error: "Password baru harus minimal 6 karakter.",
+                success: null,
+            });
+        }
+
+        // Validate password confirmation matches
+        if (new_password !== confirm_password) {
+            return res.render("customer/change-password", {
+                title: "Ganti Password",
+                user: req.session.user,
+                error: "Konfirmasi password baru tidak cocok.",
+                success: null,
+            });
+        }
+
+        // Get current user from database
+        const [users] = await pool.query(
+            "SELECT * FROM users WHERE id = ?",
+            [userId],
+        );
+
+        if (users.length === 0) {
+            return res.render("customer/change-password", {
+                title: "Ganti Password",
+                user: req.session.user,
+                error: "User tidak ditemukan.",
+                success: null,
+            });
+        }
+
+        const user = users[0];
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(current_password, user.password);
+        if (!isMatch) {
+            return res.render("customer/change-password", {
+                title: "Ganti Password",
+                user: req.session.user,
+                error: "Password saat ini salah.",
+                success: null,
+            });
+        }
+
+        // Check new password is different from current
+        const isSame = await bcrypt.compare(new_password, user.password);
+        if (isSame) {
+            return res.render("customer/change-password", {
+                title: "Ganti Password",
+                user: req.session.user,
+                error: "Password baru tidak boleh sama dengan password saat ini.",
+                success: null,
+            });
+        }
+
+        // Hash and update new password
+        const hash = await bcrypt.hash(new_password, 12);
+        await pool.query("UPDATE users SET password = ? WHERE id = ?", [
+            hash,
+            userId,
+        ]);
+
+        res.render("customer/change-password", {
+            title: "Ganti Password",
+            user: req.session.user,
+            error: null,
+            success: "Password berhasil diubah!",
+        });
+    } catch (e) {
+        console.error("Change password error:", e);
+        res.render("customer/change-password", {
+            title: "Ganti Password",
+            user: req.session.user,
+            error: "Terjadi kesalahan server. Silakan coba lagi.",
+            success: null,
+        });
     }
 });
 
