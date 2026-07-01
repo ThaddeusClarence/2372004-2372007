@@ -48,6 +48,12 @@ class NotificationService {
                         message,
                         payload
                     });
+                } else {
+                    io.emit('globalNotification', {
+                        type,
+                        message,
+                        payload
+                    });
                 }
 
                 // General booking update channel

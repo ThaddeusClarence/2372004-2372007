@@ -35,7 +35,10 @@ html(lang="id")
     script.
       const socket = io();
       
-      function showNotificationToast(message) {
+      const sessionUser = !{sessionUser ? JSON.stringify(sessionUser) : 'null'};
+      const userId = sessionUser ? sessionUser.id : null;
+      
+      function showNotificationToast(message, title = 'Pengumuman TravelGo') {
           const toast = document.createElement('div');
           toast.className = 'notif-toast';
           toast.style.position = 'fixed';
@@ -58,7 +61,7 @@ html(lang="id")
               <div style="display: flex; align-items: flex-start; gap: 12px; max-width: 320px;">
                   <div style="font-size: 1.2rem;">📢</div>
                   <div style="flex: 1;">
-                      <strong style="display: block; margin-bottom: 4px; font-weight: 600; text-align: left;">Pengumuman TravelGo</strong>
+                      <strong style="display: block; margin-bottom: 4px; font-weight: 600; text-align: left;">${title}</strong>
                       <span style="color: rgba(255, 255, 255, 0.9); font-size: 0.9em; line-height: 1.4; text-align: left; display: block;">${message}</span>
                   </div>
                   <button onclick="this.closest('.notif-toast').remove()" style="background: transparent; border: none; color: #fff; opacity: 0.6; cursor: pointer; font-size: 1.1rem; padding: 0; line-height: 1; margin-left: 8px;">&times;</button>
@@ -81,9 +84,15 @@ html(lang="id")
           }, 8000);
       }
 
-      socket.on('adminNotification', function(data) {
-          showNotificationToast(data.message);
+      socket.on('globalNotification', function(data) {
+          showNotificationToast(data.message, 'Pengumuman TravelGo');
       });
+
+      if (userId) {
+          socket.on(`customerNotification_${userId}`, function(data) {
+              showNotificationToast(data.message, 'Notifikasi Pesanan');
+          });
+      }
 
     script(src="/js/theme-toggle.js")
 

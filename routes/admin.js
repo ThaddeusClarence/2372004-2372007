@@ -516,11 +516,12 @@ router.get("/notifications", authAdmin, async (req, res) => {
 router.post("/notifications", authAdmin, async (req, res) => {
     try {
         const { message } = req.body;
-        await pool.query("INSERT INTO notifications (message) VALUES (?)", [
-            message,
-        ]);
         const io = req.app.get("io");
-        if (io) io.emit("adminNotification", { message });
+        await NotificationService.createNotification({
+            type: "broadcast",
+            message,
+            io
+        });
     } catch (e) {
         console.error("Add notification error:", e);
     }
